@@ -3,6 +3,7 @@ package main
 import (
 	"bufio"
 	"fmt"
+	"glox/glox"
 	"os"
 )
 
@@ -12,8 +13,8 @@ func runFile(path string) {
 		fmt.Fprintf(os.Stderr, "Error reading the file %s\n", path)
 		os.Exit(74)
 	}
-	if err := run(string(content)); err != nil {
-		fmt.Fprintln(os.Stderr, err)
+	if errors := run(string(content)); errors != nil {
+		printErrors(errors)
 		os.Exit(65)
 	}
 }
@@ -32,17 +33,28 @@ func runPrompt() {
 			}
 		}
 		line := scanner.Text()
-		if err := run(line); err != nil {
-			fmt.Fprintln(os.Stderr, err)
+		if errors := run(line); errors != nil {
+			printErrors(errors)
 		}
 	}
 }
-
-func run(source string) error {
-	// TODO
+func run(source string) []error {
+	scanner := glox.NewScanner(source)
+	tokens, errors := scanner.ScanTokens()
+	if errors != nil {
+		return errors
+	}
+	for _, token := range tokens {
+		fmt.Println(token)
+	}
 	return nil
 }
 
+func printErrors(errors []error) {
+	for _, err := range errors {
+		fmt.Fprintln(os.Stderr, err)
+	}
+}
 func main() {
 	programName := os.Args[0]
 	numArgs := len(os.Args[1:])
