@@ -131,7 +131,7 @@ func (s *Scanner) scanToken() error {
 		}
 	default:
 		if unicode.IsDigit(r) {
-			if err := s.digit(); err != nil {
+			if err := s.number(); err != nil {
 				return err
 			}
 		} else if unicode.IsLetter(r) || r == '_' {
@@ -212,7 +212,7 @@ func (s *Scanner) string() error {
 	return nil
 }
 
-func (s *Scanner) digit() error {
+func (s *Scanner) number() error {
 	for unicode.IsDigit(s.peek()) {
 		s.advance()
 	}
