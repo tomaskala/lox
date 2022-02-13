@@ -44,9 +44,13 @@ func run(source string) []error {
 	if errors != nil {
 		return errors
 	}
-	for _, token := range tokens {
-		fmt.Println(token)
+	parser := glox.NewParser(tokens)
+	expr, err := parser.Parse()
+	if err != nil {
+		return []error{err}
 	}
+	printer := glox.AstPrinter{}
+	fmt.Println(printer.Print(expr))
 	return nil
 }
 

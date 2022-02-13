@@ -137,7 +137,7 @@ func (s *Scanner) scanToken() error {
 		} else if unicode.IsLetter(r) || r == '_' {
 			s.identifier()
 		} else {
-			return gloxError(s.line, fmt.Sprintf("Unexpected character: %q.", r))
+			return scanError(s.line, fmt.Sprintf("Unexpected character: %q.", r))
 		}
 	}
 	return nil
@@ -204,7 +204,7 @@ func (s *Scanner) string() error {
 		s.advance()
 	}
 	if s.atEnd() {
-		return gloxError(s.line, "Unterminated string literal.")
+		return scanError(s.line, "Unterminated string literal.")
 	}
 	s.advance()                                // Read the closing quote.
 	value := s.source[s.start+1 : s.current-1] // Trim the surrounding quotes.
@@ -224,7 +224,7 @@ func (s *Scanner) number() error {
 	}
 	num, err := strconv.ParseFloat(s.source[s.start:s.current], 64)
 	if err != nil {
-		return gloxError(s.line, "Invalid number literal.")
+		return scanError(s.line, "Invalid number literal.")
 	}
 	s.addLiteral(NUMBER, num)
 	return nil
