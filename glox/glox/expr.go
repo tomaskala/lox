@@ -20,7 +20,6 @@ type Expr interface {
 }
 
 type Assign struct {
-	Expr
 	name  Token
 	value Expr
 }
@@ -30,7 +29,6 @@ func (expr *Assign) accept(v ExprVisitor) interface{} {
 }
 
 type Binary struct {
-	Expr
 	left     Expr
 	operator Token
 	right    Expr
@@ -41,7 +39,6 @@ func (expr *Binary) accept(v ExprVisitor) interface{} {
 }
 
 type Call struct {
-	Expr
 	callee    Expr
 	paren     Token
 	arguments []Expr
@@ -52,7 +49,6 @@ func (expr *Call) accept(v ExprVisitor) interface{} {
 }
 
 type Get struct {
-	Expr
 	object Expr
 	name   Token
 }
@@ -62,7 +58,6 @@ func (expr *Get) accept(v ExprVisitor) interface{} {
 }
 
 type Grouping struct {
-	Expr
 	expression Expr
 }
 
@@ -71,7 +66,6 @@ func (expr *Grouping) accept(v ExprVisitor) interface{} {
 }
 
 type Literal struct {
-	Expr
 	value interface{}
 }
 
@@ -80,7 +74,6 @@ func (expr *Literal) accept(v ExprVisitor) interface{} {
 }
 
 type Logical struct {
-	Expr
 	left     Expr
 	operator Token
 	right    Expr
@@ -91,7 +84,6 @@ func (expr *Logical) accept(v ExprVisitor) interface{} {
 }
 
 type Set struct {
-	Expr
 	object Expr
 	name   Token
 	value  Expr
@@ -102,7 +94,6 @@ func (expr *Set) accept(v ExprVisitor) interface{} {
 }
 
 type Super struct {
-	Expr
 	keyword Token
 	method  Token
 }
@@ -112,7 +103,6 @@ func (expr *Super) accept(v ExprVisitor) interface{} {
 }
 
 type This struct {
-	Expr
 	keyword Token
 }
 
@@ -121,7 +111,6 @@ func (expr *This) accept(v ExprVisitor) interface{} {
 }
 
 type Unary struct {
-	Expr
 	operator Token
 	right    Expr
 }
@@ -131,7 +120,6 @@ func (expr *Unary) accept(v ExprVisitor) interface{} {
 }
 
 type Variable struct {
-	Expr
 	name Token
 }
 
