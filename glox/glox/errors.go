@@ -9,9 +9,9 @@ func scanError(line int, message string) error {
 func parseError(token Token, message string) error {
 	var where string
 	if token.tokenType == EOF {
-		where = " at end"
+		where = "at end"
 	} else {
-		where = fmt.Sprintf(" at '%s'", token.lexeme)
+		where = fmt.Sprintf("at '%s'", token.lexeme)
 	}
 	return report(token.line, where, message)
 }

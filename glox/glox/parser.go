@@ -5,6 +5,9 @@ type Parser struct {
 	current int     // Index of the next token to be parsed.
 }
 
+// Wraps a parsing error to distinguish it from other errors.
+type parserError struct{ error }
+
 func NewParser(tokens []Token) *Parser {
 	return &Parser{
 		tokens:  tokens,
@@ -12,131 +15,109 @@ func NewParser(tokens []Token) *Parser {
 	}
 }
 
-func (p *Parser) Parse() (Expr, error) {
-	expr, err := p.expression()
-	return expr, err
+func (p *Parser) Parse() (e Expr, err error) {
+	defer func() {
+		if r := recover(); r != nil {
+			if pe, ok := r.(parserError); ok {
+				err = pe
+			} else {
+				panic(r)
+			}
+		}
+	}()
+	expr := p.expression()
+	return expr, nil
 }
 
-func (p *Parser) expression() (Expr, error) {
-	expr, err := p.equality()
-	return expr, err
+func (p *Parser) expression() Expr {
+	return p.equality()
 }
 
-func (p *Parser) equality() (Expr, error) {
-	expr, err := p.comparison()
-	if err != nil {
-		return expr, err
-	}
+func (p *Parser) equality() Expr {
+	expr := p.comparison()
 	for p.match(BANG_EQUAL, EQUAL_EQUAL) {
 		operator := p.previous()
-		right, err := p.comparison()
-		if err != nil {
-			return expr, err
-		}
+		right := p.comparison()
 		expr = Binary{
 			left:     expr,
 			operator: operator,
 			right:    right,
 		}
 	}
-	return expr, nil
+	return expr
 }
 
-func (p *Parser) comparison() (Expr, error) {
-	expr, err := p.term()
-	if err != nil {
-		return expr, err
-	}
+func (p *Parser) comparison() Expr {
+	expr := p.term()
 	for p.match(GREATER, GREATER_EQUAL, LESS, LESS_EQUAL) {
 		operator := p.previous()
-		right, err := p.term()
-		if err != nil {
-			return expr, err
-		}
+		right := p.term()
 		expr = Binary{
 			left:     expr,
 			operator: operator,
 			right:    right,
 		}
 	}
-	return expr, nil
+	return expr
 }
 
-func (p *Parser) term() (Expr, error) {
-	expr, err := p.factor()
-	if err != nil {
-		return expr, err
-	}
+func (p *Parser) term() Expr {
+	expr := p.factor()
 	for p.match(MINUS, PLUS) {
 		operator := p.previous()
-		right, err := p.factor()
-		if err != nil {
-			return expr, err
-		}
+		right := p.factor()
 		expr = Binary{
 			left:     expr,
 			operator: operator,
 			right:    right,
 		}
 	}
-	return expr, nil
+	return expr
 }
 
-func (p *Parser) factor() (Expr, error) {
-	expr, err := p.unary()
-	if err != nil {
-		return expr, err
-	}
+func (p *Parser) factor() Expr {
+	expr := p.unary()
 	for p.match(SLASH, STAR) {
 		operator := p.previous()
-		right, err := p.unary()
-		if err != nil {
-			return expr, err
-		}
+		right := p.unary()
 		expr = Binary{
 			left:     expr,
 			operator: operator,
 			right:    right,
 		}
 	}
-	return expr, nil
+	return expr
 }
 
-func (p *Parser) unary() (Expr, error) {
+func (p *Parser) unary() Expr {
 	if p.match(BANG, MINUS) {
 		operator := p.previous()
-		right, err := p.unary()
+		right := p.unary()
 		return Unary{
 			operator: operator,
 			right:    right,
-		}, err
+		}
 	} else {
 		return p.primary()
 	}
 }
 
-func (p *Parser) primary() (Expr, error) {
+func (p *Parser) primary() Expr {
 	switch {
 	case p.match(FALSE):
-		return Literal{value: false}, nil
+		return Literal{value: false}
 	case p.match(TRUE):
-		return Literal{value: true}, nil
+		return Literal{value: true}
 	case p.match(NIL):
-		return Literal{value: nil}, nil
+		return Literal{value: nil}
 	case p.match(NUMBER, STRING):
-		return Literal{p.previous().literal}, nil
+		return Literal{p.previous().literal}
 	case p.match(LEFT_PAREN):
-		expr, err := p.expression()
-		if err != nil {
-			return nil, err
-		}
-		_, err = p.consume(RIGHT_PAREN, "Expect ')' after an expression.")
-		if err != nil {
-			return nil, err
-		}
-		return Grouping{expression: expr}, nil
+		expr := p.expression()
+		p.consume(RIGHT_PAREN, "Expect ')' after an expression.")
+		return Grouping{expression: expr}
 	default:
-		return nil, parseError(p.peek(), "Expect an expression.")
+		panic(parserError{parseError(p.peek(), "Expect an expression.")})
 	}
 }
 
@@ -177,17 +158,11 @@ func (p *Parser) previous() Token {
 	return p.tokens[p.current-1]
 }
 
-func (p *Parser) consume(tokenType TokenType, message string) (Token, error) {
+func (p *Parser) consume(tokenType TokenType, message string) Token {
 	if p.check(tokenType) {
-		return p.advance(), nil
+		return p.advance()
 	} else {
-		dummy := Token{
-			tokenType: EOF,
-			lexeme: "",
-			literal: nil,
-			line: 0,
-		}
-		return dummy, parseError(p.peek(), message)
+		panic(parserError{parseError(p.peek(), message)})
 	}
 }
 
