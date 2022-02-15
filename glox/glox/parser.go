@@ -90,14 +90,27 @@ func (p *Parser) factor() Expr {
 }
 
 func (p *Parser) unary() Expr {
-	if p.match(BANG, MINUS) {
+	switch {
+	case p.match(BANG, MINUS):
 		operator := p.previous()
 		right := p.unary()
 		return Unary{
 			operator: operator,
 			right:    right,
 		}
-	} else {
+	case p.match(BANG_EQUAL, EQUAL_EQUAL):
+		p.comparison()
+		panic(parserError{parseError(p.previous(), "Missing left operand.")})
+	case p.match(GREATER, GREATER_EQUAL, LESS, LESS_EQUAL):
+		p.term()
+		panic(parserError{parseError(p.previous(), "Missing left operand.")})
+	case p.match(PLUS):
+		p.factor()
+		panic(parserError{parseError(p.previous(), "Missing left operand.")})
+	case p.match(SLASH, STAR):
+		p.unary()
+		panic(parserError{parseError(p.previous(), "Missing left operand.")})
+	default:
 		return p.primary()
 	}
 }
