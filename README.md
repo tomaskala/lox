@@ -1,6 +1,6 @@
 # lox
 
-My implementation of the `lox` programming language, as described by the
+My implementation of the `lox` programming language, as described in the
 wonderful book [Crafting Interpreters](https://craftinginterpreters.com/) by
 Robert Nystrom.
 
