@@ -22,7 +22,7 @@ func (i *Interpreter) visitBinary(expr Binary) interface{} {
 		return left.(float64) - right.(float64)
 	case BANG_EQUAL:
 		return left != right
-	case EQUAL:
+	case EQUAL_EQUAL:
 		return left == right
 	case PLUS:
 		lf, lok := left.(float64)
