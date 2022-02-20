@@ -49,8 +49,11 @@ func run(source string) []error {
 	if err != nil {
 		return []error{err}
 	}
-	printer := glox.AstPrinter{}
-	fmt.Println(printer.Print(expr))
+	interpreter := glox.NewInterpreter()
+	err = interpreter.Interpret(expr)
+	if err != nil {
+		return []error{err}
+	}
 	return nil
 }
 
