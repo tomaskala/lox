@@ -70,7 +70,12 @@ func (i *Interpreter) visitBinary(expr Binary) interface{} {
 		panic(interpreterError{runtimeError(expr.operator, "Operands must be numbers or strings.")})
 	case SLASH:
 		i.checkNumberOperands(expr.operator, left, right)
-		return left.(float64) / right.(float64)
+		rightNum := right.(float64)
+		if rightNum == 0.0 {
+			panic(interpreterError{runtimeError(expr.operator, "Division by zero.")})
+		} else {
+			return left.(float64) / rightNum
+		}
 	case STAR:
 		i.checkNumberOperands(expr.operator, left, right)
 		return left.(float64) * right.(float64)
