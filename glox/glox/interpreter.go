@@ -5,10 +5,14 @@ import (
 	"math"
 )
 
-type Interpreter struct{}
+type Interpreter struct {
+	environment *Environment
+}
 
 func NewInterpreter() *Interpreter {
-	return &Interpreter{}
+	return &Interpreter{
+		environment: NewEnvironment(),
+	}
 }
 
 func (i *Interpreter) Interpret(statements []Stmt) (err error) {
@@ -63,6 +67,11 @@ func (i *Interpreter) visitReturn(stmt Return) interface{} {
 }
 
 func (i *Interpreter) visitVar(stmt Var) interface{} {
+	var value interface{}
+	if stmt.initializer != nil {
+		value = i.evaluate(stmt.initializer)
+	}
+	i.environment.define(stmt.name.lexeme, value)
 	return nil
 }
 
@@ -171,7 +180,7 @@ func (i *Interpreter) visitUnary(expr Unary) interface{} {
 }
 
 func (i *Interpreter) visitVariable(expr Variable) interface{} {
-	return nil
+	return i.environment.get(expr.name)
 }
 
 func (i *Interpreter) evaluate(expr Expr) interface{} {

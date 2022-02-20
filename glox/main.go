@@ -9,11 +9,12 @@ import (
 
 func runFile(path string) {
 	content, err := os.ReadFile(path)
+	interpreter := glox.NewInterpreter()
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error reading the file %s\n", path)
 		os.Exit(74)
 	}
-	if errors := run(string(content)); errors != nil {
+	if errors := run(interpreter, string(content)); errors != nil {
 		printErrors(errors)
 		os.Exit(65)
 	}
@@ -21,6 +22,7 @@ func runFile(path string) {
 
 func runPrompt() {
 	scanner := bufio.NewScanner(os.Stdin)
+	interpreter := glox.NewInterpreter()
 	for {
 		fmt.Print("> ")
 		if ok := scanner.Scan(); !ok {
@@ -33,12 +35,12 @@ func runPrompt() {
 			}
 		}
 		line := scanner.Text()
-		if errors := run(line); errors != nil {
+		if errors := run(interpreter, line); errors != nil {
 			printErrors(errors)
 		}
 	}
 }
-func run(source string) []error {
+func run(interpreter *glox.Interpreter, source string) []error {
 	scanner := glox.NewScanner(source)
 	tokens, errors := scanner.ScanTokens()
 	if errors != nil {
@@ -49,7 +51,6 @@ func run(source string) []error {
 	if errors != nil {
 		return errors
 	}
-	interpreter := glox.NewInterpreter()
 	err := interpreter.Interpret(statements)
 	if err != nil {
 		return []error{err}
