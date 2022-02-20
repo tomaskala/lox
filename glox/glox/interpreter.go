@@ -7,9 +7,6 @@ import (
 
 type Interpreter struct{}
 
-// Wraps an interpreter error to distinguish it from other errors.
-type interpreterError struct{ error }
-
 func NewInterpreter() *Interpreter {
 	return &Interpreter{}
 }

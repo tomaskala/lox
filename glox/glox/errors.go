@@ -2,6 +2,12 @@ package glox
 
 import "fmt"
 
+// Wraps a parsing error to distinguish it from other errors.
+type parserError struct{ error }
+
+// Wraps an interpreter error to distinguish it from other errors.
+type interpreterError struct{ error }
+
 func scanError(line int, message string) error {
 	return report(line, "", message)
 }

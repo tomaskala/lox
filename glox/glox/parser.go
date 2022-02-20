@@ -5,9 +5,6 @@ type Parser struct {
 	current int     // Index of the next token to be parsed.
 }
 
-// Wraps a parsing error to distinguish it from other errors.
-type parserError struct{ error }
-
 func NewParser(tokens []Token) *Parser {
 	return &Parser{
 		tokens:  tokens,
