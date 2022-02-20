@@ -25,7 +25,7 @@ func (i *Interpreter) Interpret(expr Expr) (err error) {
 		}
 	}()
 	value := i.evaluate(expr)
-	fmt.Println(i.stringify(value))
+	fmt.Println(stringify(value))
 	return nil
 }
 
@@ -38,19 +38,19 @@ func (i *Interpreter) visitBinary(expr Binary) interface{} {
 	right := i.evaluate(expr.right)
 	switch expr.operator.tokenType {
 	case GREATER:
-		i.checkNumberOperands(expr.operator, left, right)
+		checkNumberOperands(expr.operator, left, right)
 		return left.(float64) > right.(float64)
 	case GREATER_EQUAL:
-		i.checkNumberOperands(expr.operator, left, right)
+		checkNumberOperands(expr.operator, left, right)
 		return left.(float64) >= right.(float64)
 	case LESS:
-		i.checkNumberOperands(expr.operator, left, right)
+		checkNumberOperands(expr.operator, left, right)
 		return left.(float64) < right.(float64)
 	case LESS_EQUAL:
-		i.checkNumberOperands(expr.operator, left, right)
+		checkNumberOperands(expr.operator, left, right)
 		return left.(float64) <= right.(float64)
 	case MINUS:
-		i.checkNumberOperands(expr.operator, left, right)
+		checkNumberOperands(expr.operator, left, right)
 		return left.(float64) - right.(float64)
 	case BANG_EQUAL:
 		return left != right
@@ -69,7 +69,7 @@ func (i *Interpreter) visitBinary(expr Binary) interface{} {
 		}
 		panic(interpreterError{runtimeError(expr.operator, "Operands must be numbers or strings.")})
 	case SLASH:
-		i.checkNumberOperands(expr.operator, left, right)
+		checkNumberOperands(expr.operator, left, right)
 		rightNum := right.(float64)
 		if rightNum == 0.0 {
 			panic(interpreterError{runtimeError(expr.operator, "Division by zero.")})
@@ -77,7 +77,7 @@ func (i *Interpreter) visitBinary(expr Binary) interface{} {
 			return left.(float64) / rightNum
 		}
 	case STAR:
-		i.checkNumberOperands(expr.operator, left, right)
+		checkNumberOperands(expr.operator, left, right)
 		return left.(float64) * right.(float64)
 	}
 	// Unreachable.
@@ -120,9 +120,9 @@ func (i *Interpreter) visitUnary(expr Unary) interface{} {
 	right := i.evaluate(expr.right)
 	switch expr.operator.tokenType {
 	case BANG:
-		return !i.isTruthy(right)
+		return !isTruthy(right)
 	case MINUS:
-		i.checkNumberOperand(expr.operator, right)
+		checkNumberOperand(expr.operator, right)
 		return -right.(float64)
 	}
 	// Unreachable.
@@ -137,7 +137,7 @@ func (i *Interpreter) evaluate(expr Expr) interface{} {
 	return expr.accept(i)
 }
 
-func (i *Interpreter) isTruthy(object interface{}) bool {
+func isTruthy(object interface{}) bool {
 	if object == nil {
 		return false
 	} else if b, ok := object.(bool); ok {
@@ -147,13 +147,13 @@ func (i *Interpreter) isTruthy(object interface{}) bool {
 	}
 }
 
-func (i *Interpreter) checkNumberOperand(operator Token, operand interface{}) {
+func checkNumberOperand(operator Token, operand interface{}) {
 	if _, ok := operand.(float64); !ok {
 		panic(interpreterError{runtimeError(operator, "Operand must be a number.")})
 	}
 }
 
-func (i *Interpreter) checkNumberOperands(operator Token, left, right interface{}) {
+func checkNumberOperands(operator Token, left, right interface{}) {
 	_, lok := left.(float64)
 	_, rok := right.(float64)
 
@@ -162,7 +162,7 @@ func (i *Interpreter) checkNumberOperands(operator Token, left, right interface{
 	}
 }
 
-func (i *Interpreter) stringify(value interface{}) string {
+func stringify(value interface{}) string {
 	if num, ok := value.(float64); ok {
 		var text string
 		if math.Trunc(num) == num {
