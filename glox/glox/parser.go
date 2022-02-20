@@ -15,12 +15,49 @@ func NewParser(tokens []Token) *Parser {
 	}
 }
 
-func (p *Parser) Parse() ([]Stmt, error) {
-	statements := make([]Stmt, 0)
+func (p *Parser) Parse() ([]Stmt, []error) {
+	var statements []Stmt
+	var errors []error
 	for !p.atEnd() {
-		statements = append(statements, p.statement())
+		stmt, err := p.declaration()
+		if err != nil {
+			errors = append(errors, err)
+		} else {
+			statements = append(statements, stmt)
+		}
 	}
-	return statements, nil
+	return statements, errors
+}
+
+func (p *Parser) declaration() (stmt Stmt, err error) {
+	defer func() {
+		if r := recover(); r != nil {
+			if pr, ok := r.(parserError); ok {
+				p.synchronize()
+				err = pr
+			} else {
+				panic(r)
+			}
+		}
+	}()
+	if p.match(VAR) {
+		return p.varDeclaration(), nil
+	} else {
+		return p.statement(), nil
+	}
+}
+
+func (p *Parser) varDeclaration() Stmt {
+	name := p.consume(IDENTIFIER, "Expect a variable name.")
+	var initializer Expr
+	if p.match(EQUAL) {
+		initializer = p.expression()
+	}
+	p.consume(SEMICOLON, "Expect ';' after a variable declaration.")
+	return Var{
+		name:        name,
+		initializer: initializer,
+	}
 }
 
 func (p *Parser) statement() Stmt {
@@ -142,7 +179,9 @@ func (p *Parser) primary() Expr {
 	case p.match(NIL):
 		return Literal{value: nil}
 	case p.match(NUMBER, STRING):
-		return Literal{p.previous().literal}
+		return Literal{value: p.previous().literal}
+	case p.match(IDENTIFIER):
+		return Variable{name: p.previous()}
 	case p.match(LEFT_PAREN):
 		expr := p.expression()
 		p.consume(RIGHT_PAREN, "Expect ')' after an expression.")
