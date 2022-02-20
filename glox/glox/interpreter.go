@@ -14,7 +14,7 @@ func NewInterpreter() *Interpreter {
 	return &Interpreter{}
 }
 
-func (i *Interpreter) Interpret(expr Expr) (err error) {
+func (i *Interpreter) Interpret(statements []Stmt) (err error) {
 	defer func() {
 		if r := recover(); r != nil {
 			if ie, ok := r.(interpreterError); ok {
@@ -24,8 +24,52 @@ func (i *Interpreter) Interpret(expr Expr) (err error) {
 			}
 		}
 	}()
-	value := i.evaluate(expr)
+	for _, statement := range statements {
+		i.execute(statement)
+	}
+	return nil
+}
+
+func (i *Interpreter) execute(stmt Stmt) interface{} {
+	return stmt.accept(i)
+}
+
+func (i *Interpreter) visitBlock(stmt Block) interface{} {
+	return nil
+}
+
+func (i *Interpreter) visitClass(stmt Class) interface{} {
+	return nil
+}
+
+func (i *Interpreter) visitExpression(stmt Expression) interface{} {
+	i.evaluate(stmt.expression)
+	return nil
+}
+
+func (i *Interpreter) visitFunction(stmt Function) interface{} {
+	return nil
+}
+
+func (i *Interpreter) visitIf(stmt If) interface{} {
+	return nil
+}
+
+func (i *Interpreter) visitPrint(stmt Print) interface{} {
+	value := i.evaluate(stmt.expression)
 	fmt.Println(stringify(value))
+	return nil
+}
+
+func (i *Interpreter) visitReturn(stmt Return) interface{} {
+	return nil
+}
+
+func (i *Interpreter) visitVar(stmt Var) interface{} {
+	return nil
+}
+
+func (i *Interpreter) visitWhile(stmt While) interface{} {
 	return nil
 }
 

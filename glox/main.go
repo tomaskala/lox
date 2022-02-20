@@ -45,12 +45,12 @@ func run(source string) []error {
 		return errors
 	}
 	parser := glox.NewParser(tokens)
-	expr, err := parser.Parse()
+	statements, err := parser.Parse()
 	if err != nil {
 		return []error{err}
 	}
 	interpreter := glox.NewInterpreter()
-	err = interpreter.Interpret(expr)
+	err = interpreter.Interpret(statements)
 	if err != nil {
 		return []error{err}
 	}
