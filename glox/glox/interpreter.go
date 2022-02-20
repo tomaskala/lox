@@ -80,7 +80,9 @@ func (i *Interpreter) visitWhile(stmt While) interface{} {
 }
 
 func (i *Interpreter) visitAssign(expr Assign) interface{} {
-	return nil
+	value := i.evaluate(expr.value)
+	i.environment.assign(expr.name, value)
+	return value
 }
 
 func (i *Interpreter) visitBinary(expr Binary) interface{} {
