@@ -60,6 +60,10 @@ func (p *Parser) varDeclaration() Stmt {
 func (p *Parser) statement() Stmt {
 	if p.match(PRINT) {
 		return p.printStatement()
+	} else if p.match(LEFT_BRACE) {
+		return Block{
+			statements: p.block(),
+		}
 	} else {
 		return p.expressionStatement()
 	}
@@ -71,6 +75,19 @@ func (p *Parser) printStatement() Stmt {
 	return Print{
 		expression: value,
 	}
+}
+
+func (p *Parser) block() []Stmt {
+	statements := make([]Stmt, 0)
+	for !p.check(RIGHT_BRACE) && !p.atEnd() {
+		stmt, err := p.declaration()
+		if err != nil {
+			panic(parserError{err})
+		}
+		statements = append(statements, stmt)
+	}
+	p.consume(RIGHT_BRACE, "Expect '}' after a block.")
+	return statements
 }
 
 func (p *Parser) expressionStatement() Stmt {

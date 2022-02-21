@@ -11,7 +11,7 @@ type Interpreter struct {
 
 func NewInterpreter() *Interpreter {
 	return &Interpreter{
-		environment: NewEnvironment(),
+		environment: NewEnvironment(nil),
 	}
 }
 
@@ -36,6 +36,7 @@ func (i *Interpreter) execute(stmt Stmt) interface{} {
 }
 
 func (i *Interpreter) visitBlock(stmt Block) interface{} {
+	i.executeBlock(stmt.statements, NewEnvironment(i.environment))
 	return nil
 }
 
@@ -187,6 +188,17 @@ func (i *Interpreter) visitVariable(expr Variable) interface{} {
 
 func (i *Interpreter) evaluate(expr Expr) interface{} {
 	return expr.accept(i)
+}
+
+func (i *Interpreter) executeBlock(statements []Stmt, environment *Environment) {
+	previous := i.environment
+	defer func() {
+		i.environment = previous
+	}()
+	i.environment = environment
+	for _, statement := range statements {
+		i.execute(statement)
+	}
 }
 
 func isTruthy(object interface{}) bool {
