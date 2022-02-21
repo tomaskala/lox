@@ -9,7 +9,7 @@ import (
 
 func runFile(path string) {
 	content, err := os.ReadFile(path)
-	interpreter := glox.NewInterpreter()
+	interpreter := glox.NewInterpreter(false)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error reading the file %s\n", path)
 		os.Exit(74)
@@ -22,7 +22,7 @@ func runFile(path string) {
 
 func runPrompt() {
 	scanner := bufio.NewScanner(os.Stdin)
-	interpreter := glox.NewInterpreter()
+	interpreter := glox.NewInterpreter(true)
 	for {
 		fmt.Print("> ")
 		if ok := scanner.Scan(); !ok {

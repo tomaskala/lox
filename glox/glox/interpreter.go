@@ -7,11 +7,13 @@ import (
 
 type Interpreter struct {
 	environment *Environment
+	interactive bool
 }
 
-func NewInterpreter() *Interpreter {
+func NewInterpreter(interactive bool) *Interpreter {
 	return &Interpreter{
 		environment: NewEnvironment(nil),
+		interactive: interactive,
 	}
 }
 
@@ -45,7 +47,10 @@ func (i *Interpreter) visitClass(stmt Class) interface{} {
 }
 
 func (i *Interpreter) visitExpression(stmt Expression) interface{} {
-	i.evaluate(stmt.expression)
+	value := i.evaluate(stmt.expression)
+	if i.interactive {
+		fmt.Println(value)
+	}
 	return nil
 }
 
