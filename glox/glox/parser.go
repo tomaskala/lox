@@ -58,13 +58,16 @@ func (p *Parser) varDeclaration() Stmt {
 }
 
 func (p *Parser) statement() Stmt {
-	if p.match(PRINT) {
+	switch {
+	case p.match(PRINT):
 		return p.printStatement()
-	} else if p.match(LEFT_BRACE) {
+	case p.match(LEFT_BRACE):
 		return Block{
 			statements: p.block(),
 		}
-	} else {
+	case p.match(IF):
+		return p.ifStatement()
+	default:
 		return p.expressionStatement()
 	}
 }
@@ -90,6 +93,24 @@ func (p *Parser) block() []Stmt {
 	return statements
 }
 
+func (p *Parser) ifStatement() Stmt {
+	p.consume(LEFT_PAREN, "Expect '(' after 'if'.")
+	condition := p.expression()
+	p.consume(RIGHT_PAREN, "Expect ')' after an if condition.")
+	thenBranch := p.statement()
+	var elseBranch Stmt
+	if p.match(ELSE) {
+		elseBranch = p.statement()
+	} else {
+		elseBranch = nil
+	}
+	return If{
+		condition:  condition,
+		thenBranch: thenBranch,
+		elseBranch: elseBranch,
+	}
+}
+
 func (p *Parser) expressionStatement() Stmt {
 	expr := p.expression()
 	p.consume(SEMICOLON, "Expect ';' after an expression.")
@@ -103,7 +124,7 @@ func (p *Parser) expression() Expr {
 }
 
 func (p *Parser) assignment() Expr {
-	expr := p.equality()
+	expr := p.or()
 	if p.match(EQUAL) {
 		equals := p.previous()
 		value := p.assignment()
@@ -114,6 +135,34 @@ func (p *Parser) assignment() Expr {
 			}
 		} else {
 			panic(parserError{parseError(equals, "Invalid assignment target.")})
+		}
+	}
+	return expr
+}
+
+func (p *Parser) or() Expr {
+	expr := p.and()
+	for p.match(OR) {
+		operator := p.previous()
+		right := p.and()
+		expr = Logical{
+			left:     expr,
+			operator: operator,
+			right:    right,
+		}
+	}
+	return expr
+}
+
+func (p *Parser) and() Expr {
+	expr := p.equality()
+	for p.match(AND) {
+		operator := p.previous()
+		right := p.equality()
+		expr = Logical{
+			left:     expr,
+			operator: operator,
+			right:    right,
 		}
 	}
 	return expr

@@ -59,6 +59,11 @@ func (i *Interpreter) visitFunction(stmt Function) interface{} {
 }
 
 func (i *Interpreter) visitIf(stmt If) interface{} {
+	if isTruthy(stmt.condition) {
+		i.execute(stmt.thenBranch)
+	} else if stmt.elseBranch != nil {
+		i.execute(stmt.elseBranch)
+	}
 	return nil
 }
 
@@ -159,7 +164,17 @@ func (i *Interpreter) visitLiteral(expr Literal) interface{} {
 }
 
 func (i *Interpreter) visitLogical(expr Logical) interface{} {
-	return nil
+	left := i.evaluate(expr.left)
+	if expr.operator.tokenType == OR {
+		if isTruthy(left) {
+			return left
+		}
+	} else {
+		if !isTruthy(left) {
+			return left
+		}
+	}
+	return i.evaluate(expr.right)
 }
 
 func (i *Interpreter) visitSet(expr Set) interface{} {
