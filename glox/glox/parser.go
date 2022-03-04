@@ -67,6 +67,10 @@ func (p *Parser) statement() Stmt {
 		}
 	case p.match(IF):
 		return p.ifStatement()
+	case p.match(WHILE):
+		return p.whileStatement()
+	case p.match(FOR):
+		return p.forStatement()
 	default:
 		return p.expressionStatement()
 	}
@@ -109,6 +113,67 @@ func (p *Parser) ifStatement() Stmt {
 		thenBranch: thenBranch,
 		elseBranch: elseBranch,
 	}
+}
+
+func (p *Parser) whileStatement() Stmt {
+	p.consume(LEFT_PAREN, "Expect '(' after 'while'.")
+	condition := p.expression()
+	p.consume(RIGHT_PAREN, "Expect ')' after a while statement.")
+	body := p.statement()
+	return While{
+		condition: condition,
+		body:      body,
+	}
+}
+
+func (p *Parser) forStatement() Stmt {
+	p.consume(LEFT_PAREN, "Expect '(' after 'for'.")
+	var initializer Stmt
+	if p.match(SEMICOLON) {
+		initializer = nil
+	} else if p.match(VAR) {
+		initializer = p.varDeclaration()
+	} else {
+		initializer = p.expressionStatement()
+	}
+	var condition Expr
+	if !p.check(SEMICOLON) {
+		condition = p.expression()
+	} else {
+		condition = Literal{
+			value: true,
+		}
+	}
+	p.consume(SEMICOLON, "Expect ';' after a loop condition.")
+	var increment Expr
+	if !p.check(SEMICOLON) {
+		increment = p.expression()
+	}
+	p.consume(RIGHT_PAREN, "Expect ')' after a for statement.")
+	body := p.statement()
+	if increment != nil {
+		body = Block{
+			statements: []Stmt{
+				body,
+				Expression{
+					expression: increment,
+				},
+			},
+		}
+	}
+	body = While{
+		condition: condition,
+		body:      body,
+	}
+	if initializer != nil {
+		body = Block{
+			statements: []Stmt{
+				initializer,
+				body,
+			},
+		}
+	}
+	return body
 }
 
 func (p *Parser) expressionStatement() Stmt {

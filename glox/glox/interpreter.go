@@ -87,6 +87,9 @@ func (i *Interpreter) visitVar(stmt Var) interface{} {
 }
 
 func (i *Interpreter) visitWhile(stmt While) interface{} {
+	for isTruthy(i.evaluate(stmt.condition)) {
+		i.execute(stmt.body)
+	}
 	return nil
 }
 
