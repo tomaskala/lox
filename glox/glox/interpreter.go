@@ -64,6 +64,7 @@ func (i *Interpreter) visitExpression(stmt Expression) interface{} {
 func (i *Interpreter) visitFunction(stmt Function) interface{} {
 	function := LoxCallable{
 		declaration: stmt,
+		closure:     i.environment,
 	}
 	i.environment.define(stmt.name.lexeme, function)
 	return nil

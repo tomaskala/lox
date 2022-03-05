@@ -9,6 +9,7 @@ type Callable interface {
 
 type LoxCallable struct {
 	declaration Function
+	closure     *Environment
 }
 
 func (c LoxCallable) arity() int {
@@ -25,7 +26,7 @@ func (c LoxCallable) call(interpreter *Interpreter, arguments []interface{}) (re
 			}
 		}
 	}()
-	environment := NewEnvironment(interpreter.globals)
+	environment := NewEnvironment(c.closure)
 	for i := 0; i < len(c.declaration.params); i++ {
 		environment.define(c.declaration.params[i].lexeme, arguments[i])
 	}
