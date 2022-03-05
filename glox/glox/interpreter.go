@@ -6,13 +6,16 @@ import (
 )
 
 type Interpreter struct {
+	globals     *Environment
 	environment *Environment
 	interactive bool
 }
 
 func NewInterpreter(interactive bool) *Interpreter {
+	environment := NewGlobals()
 	return &Interpreter{
-		environment: NewEnvironment(nil),
+		globals:     environment,
+		environment: environment,
 		interactive: interactive,
 	}
 }
@@ -55,6 +58,10 @@ func (i *Interpreter) visitExpression(stmt Expression) interface{} {
 }
 
 func (i *Interpreter) visitFunction(stmt Function) interface{} {
+	function := LoxCallable{
+		declaration: stmt,
+	}
+	i.environment.define(stmt.name.lexeme, function)
 	return nil
 }
 
@@ -151,7 +158,18 @@ func (i *Interpreter) visitBinary(expr Binary) interface{} {
 }
 
 func (i *Interpreter) visitCall(expr Call) interface{} {
-	return nil
+	callee := i.evaluate(expr.callee)
+	arguments := make([]interface{}, 0)
+	for _, argument := range expr.arguments {
+		arguments = append(arguments, i.evaluate(argument))
+	}
+	checkCallable(callee, expr.paren)
+	callable := callee.(Callable)
+	if len(arguments) != callable.arity() {
+		message := fmt.Sprintf("Expected %d arguments but got %d.", callable.arity, len(arguments))
+		panic(interpreterError{runtimeError(expr.paren, message)})
+	}
+	return callable.call(i, arguments)
 }
 
 func (i *Interpreter) visitGet(expr Get) interface{} {
@@ -246,6 +264,12 @@ func checkNumberOperands(operator Token, left, right interface{}) {
 
 	if !lok || !rok {
 		panic(interpreterError{runtimeError(operator, "Operands must be numbers.")})
+	}
+}
+
+func checkCallable(callee interface{}, paren Token) {
+	if _, ok := callee.(Callable); !ok {
+		panic(interpreterError{runtimeError(paren, "Only functions and classes are callable.")})
 	}
 }
 

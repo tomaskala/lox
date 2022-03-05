@@ -1,5 +1,9 @@
 package glox
 
+import "fmt"
+
+const MAX_ARGS = 255
+
 type Parser struct {
 	tokens  []Token // List of tokens to be parsed.
 	current int     // Index of the next token to be parsed.
@@ -39,6 +43,8 @@ func (p *Parser) declaration() (stmt Stmt, err error) {
 	}()
 	if p.match(VAR) {
 		return p.varDeclaration(), nil
+	} else if p.match(FUN) {
+		return p.funDeclaration("function"), nil
 	} else {
 		return p.statement(), nil
 	}
@@ -54,6 +60,31 @@ func (p *Parser) varDeclaration() Stmt {
 	return Var{
 		name:        name,
 		initializer: initializer,
+	}
+}
+
+func (p *Parser) funDeclaration(kind string) Stmt {
+	name := p.consume(IDENTIFIER, fmt.Sprintf("Expect a %s name.", kind))
+	p.consume(LEFT_PAREN, fmt.Sprintf("Expect '(' after %s name.", kind))
+	parameters := make([]Token, 0)
+	if !p.check(RIGHT_PAREN) {
+		for {
+			if len(parameters) >= MAX_ARGS {
+				panic(parserError{parseError(p.peek(), fmt.Sprintf("At most %d parameters to a %s are supported.", MAX_ARGS, kind))})
+			}
+			parameters = append(parameters, p.consume(IDENTIFIER, "Expect a parameter name."))
+			if !p.match(COMMA) {
+				break
+			}
+		}
+	}
+	p.consume(RIGHT_PAREN, fmt.Sprintf("Expect ')' after %s parameters.", kind))
+	p.consume(LEFT_BRACE, fmt.Sprintf("Expect '{' before %s body.", kind))
+	body := p.block()
+	return Function{
+		name:   name,
+		params: parameters,
+		body:   body,
 	}
 }
 
@@ -311,8 +342,20 @@ func (p *Parser) unary() Expr {
 		p.unary()
 		panic(parserError{parseError(p.previous(), "Missing left operand.")})
 	default:
-		return p.primary()
+		return p.call()
 	}
+}
+
+func (p *Parser) call() Expr {
+	expr := p.primary()
+	for {
+		if p.match(LEFT_PAREN) {
+			expr = p.finishCall(expr)
+		} else {
+			break
+		}
+	}
+	return expr
 }
 
 func (p *Parser) primary() Expr {
@@ -393,5 +436,26 @@ func (p *Parser) synchronize() {
 		default:
 			p.advance()
 		}
+	}
+}
+
+func (p *Parser) finishCall(callee Expr) Expr {
+	arguments := make([]Expr, 0)
+	if !p.check(RIGHT_PAREN) {
+		for {
+			if len(arguments) >= MAX_ARGS {
+				panic(parserError{parseError(p.peek(), fmt.Sprintf("At most %d arguments to a function are supported.", MAX_ARGS))})
+			}
+			arguments = append(arguments, p.expression())
+			if !p.match(COMMA) {
+				break
+			}
+		}
+	}
+	paren := p.consume(RIGHT_PAREN, "Expect ')' after a function call.")
+	return Call{
+		callee:    callee,
+		paren:     paren,
+		arguments: arguments,
 	}
 }
