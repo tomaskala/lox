@@ -5,6 +5,10 @@ import (
 	"math"
 )
 
+type returnSignal struct {
+	value interface{}
+}
+
 type Interpreter struct {
 	globals     *Environment
 	environment *Environment
@@ -81,6 +85,13 @@ func (i *Interpreter) visitPrint(stmt Print) interface{} {
 }
 
 func (i *Interpreter) visitReturn(stmt Return) interface{} {
+	var value interface{}
+	if stmt.value != nil {
+		value = i.evaluate(stmt.value)
+	} else {
+		value = nil
+	}
+	panic(returnSignal{value})
 	return nil
 }
 

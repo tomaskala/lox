@@ -102,6 +102,8 @@ func (p *Parser) statement() Stmt {
 		return p.whileStatement()
 	case p.match(FOR):
 		return p.forStatement()
+	case p.match(RETURN):
+		return p.returnStatement()
 	default:
 		return p.expressionStatement()
 	}
@@ -205,6 +207,21 @@ func (p *Parser) forStatement() Stmt {
 		}
 	}
 	return body
+}
+
+func (p *Parser) returnStatement() Stmt {
+	keyword := p.previous()
+	var value Expr
+	if !p.check(SEMICOLON) {
+		value = p.expression()
+	} else {
+		value = nil
+	}
+	p.consume(SEMICOLON, "Expect ';' after return.")
+	return Return{
+		keyword: keyword,
+		value:   value,
+	}
 }
 
 func (p *Parser) expressionStatement() Stmt {
