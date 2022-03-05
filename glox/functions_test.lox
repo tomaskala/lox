@@ -1,0 +1,40 @@
+fun factorial(n) {
+    if (n <= 1) {
+        return 1;
+    } else {
+        return n * factorial(n - 1);
+    }
+}
+
+fun fibonacci(n) {
+    if (n <= 1) {
+        return n;
+    } else {
+        return fibonacci(n - 2) + fibonacci(n - 1);
+    }
+}
+
+fun make_counter() {
+    var i = 0;
+    fun count() {
+        i = i + 1;
+        print i;
+    }
+    return count;
+}
+
+print "Factorial";
+for (var i = 0; i < 10; i = i + 1) {
+    print factorial(i);
+}
+
+print "Fibonacci";
+for (var i = 0; i < 20; i = i + 1) {
+    print fibonacci(i);
+}
+
+print "Counter";
+var counter = make_counter();
+for (var i = 0; i < 10; i = i + 1) {
+    counter();
+}
