@@ -26,7 +26,7 @@ func (stmt Block) accept(v StmtVisitor) interface{} {
 
 type Class struct {
 	name       Token
-	superclass Variable
+	superclass *Variable
 	methods    []Function
 }
 
