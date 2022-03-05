@@ -66,7 +66,7 @@ func (i *Interpreter) visitFunction(stmt Function) interface{} {
 }
 
 func (i *Interpreter) visitIf(stmt If) interface{} {
-	if isTruthy(stmt.condition) {
+	if isTruthy(i.evaluate(stmt.condition)) {
 		i.execute(stmt.thenBranch)
 	} else if stmt.elseBranch != nil {
 		i.execute(stmt.elseBranch)
