@@ -76,7 +76,7 @@ func (r *Resolver) visitVariable(expr Variable) interface{} {
 	if len(r.scopes) > 0 {
 		scope := r.scopes[len(r.scopes)-1]
 		if initialized, ok := scope[expr.name.lexeme]; ok && !initialized {
-			panic(resolverError{resolveError(expr.name, "Cannot read a local variable in its own initializer.")})
+			panic(resolverError{gloxError(expr.name, "Cannot read a local variable in its own initializer.")})
 		}
 	}
 	r.resolveLocal(expr, expr.name)

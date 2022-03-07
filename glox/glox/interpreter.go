@@ -84,12 +84,12 @@ func (i *Interpreter) visitBinary(expr Binary) interface{} {
 		if lok && rok {
 			return ls + rs
 		}
-		panic(interpreterError{runtimeError(expr.operator, "Operands must be numbers or strings.")})
+		panic(interpreterError{gloxError(expr.operator, "Operands must be numbers or strings.")})
 	case SLASH:
 		checkNumberOperands(expr.operator, left, right)
 		rightNum := right.(float64)
 		if rightNum == 0.0 {
-			panic(interpreterError{runtimeError(expr.operator, "Division by zero.")})
+			panic(interpreterError{gloxError(expr.operator, "Division by zero.")})
 		} else {
 			return left.(float64) / rightNum
 		}
@@ -111,7 +111,7 @@ func (i *Interpreter) visitCall(expr Call) interface{} {
 	callable := callee.(Callable)
 	if len(arguments) != callable.arity() {
 		message := fmt.Sprintf("Expected %d arguments but got %d.", callable.arity, len(arguments))
-		panic(interpreterError{runtimeError(expr.paren, message)})
+		panic(interpreterError{gloxError(expr.paren, message)})
 	}
 	return callable.call(i, arguments)
 }
@@ -270,7 +270,7 @@ func isTruthy(object interface{}) bool {
 
 func checkNumberOperand(operator Token, operand interface{}) {
 	if _, ok := operand.(float64); !ok {
-		panic(interpreterError{runtimeError(operator, "Operand must be a number.")})
+		panic(interpreterError{gloxError(operator, "Operand must be a number.")})
 	}
 }
 
@@ -279,13 +279,13 @@ func checkNumberOperands(operator Token, left, right interface{}) {
 	_, rok := right.(float64)
 
 	if !lok || !rok {
-		panic(interpreterError{runtimeError(operator, "Operands must be numbers.")})
+		panic(interpreterError{gloxError(operator, "Operands must be numbers.")})
 	}
 }
 
 func checkCallable(callee interface{}, paren Token) {
 	if _, ok := callee.(Callable); !ok {
-		panic(interpreterError{runtimeError(paren, "Only functions and classes are callable.")})
+		panic(interpreterError{gloxError(paren, "Only functions and classes are callable.")})
 	}
 }
 

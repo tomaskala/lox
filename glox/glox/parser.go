@@ -70,7 +70,7 @@ func (p *Parser) funDeclaration(kind string) Stmt {
 	if !p.check(RIGHT_PAREN) {
 		for {
 			if len(parameters) >= MAX_ARGS {
-				panic(parserError{parseError(p.peek(), fmt.Sprintf("At most %d parameters to a %s are supported.", MAX_ARGS, kind))})
+				panic(parserError{gloxError(p.peek(), fmt.Sprintf("At most %d parameters to a %s are supported.", MAX_ARGS, kind))})
 			}
 			parameters = append(parameters, p.consume(IDENTIFIER, "Expect a parameter name."))
 			if !p.match(COMMA) {
@@ -247,7 +247,7 @@ func (p *Parser) assignment() Expr {
 				value: value,
 			}
 		} else {
-			panic(parserError{parseError(equals, "Invalid assignment target.")})
+			panic(parserError{gloxError(equals, "Invalid assignment target.")})
 		}
 	}
 	return expr
@@ -348,16 +348,16 @@ func (p *Parser) unary() Expr {
 		}
 	case p.match(BANG_EQUAL, EQUAL_EQUAL):
 		p.comparison()
-		panic(parserError{parseError(p.previous(), "Missing left operand.")})
+		panic(parserError{gloxError(p.previous(), "Missing left operand.")})
 	case p.match(GREATER, GREATER_EQUAL, LESS, LESS_EQUAL):
 		p.term()
-		panic(parserError{parseError(p.previous(), "Missing left operand.")})
+		panic(parserError{gloxError(p.previous(), "Missing left operand.")})
 	case p.match(PLUS):
 		p.factor()
-		panic(parserError{parseError(p.previous(), "Missing left operand.")})
+		panic(parserError{gloxError(p.previous(), "Missing left operand.")})
 	case p.match(SLASH, STAR):
 		p.unary()
-		panic(parserError{parseError(p.previous(), "Missing left operand.")})
+		panic(parserError{gloxError(p.previous(), "Missing left operand.")})
 	default:
 		return p.call()
 	}
@@ -392,7 +392,7 @@ func (p *Parser) primary() Expr {
 		p.consume(RIGHT_PAREN, "Expect ')' after an expression.")
 		return Grouping{expression: expr}
 	default:
-		panic(parserError{parseError(p.peek(), "Expect an expression.")})
+		panic(parserError{gloxError(p.peek(), "Expect an expression.")})
 	}
 }
 
@@ -437,7 +437,7 @@ func (p *Parser) consume(tokenType TokenType, message string) Token {
 	if p.check(tokenType) {
 		return p.advance()
 	} else {
-		panic(parserError{parseError(p.peek(), message)})
+		panic(parserError{gloxError(p.peek(), message)})
 	}
 }
 
@@ -461,7 +461,7 @@ func (p *Parser) finishCall(callee Expr) Expr {
 	if !p.check(RIGHT_PAREN) {
 		for {
 			if len(arguments) >= MAX_ARGS {
-				panic(parserError{parseError(p.peek(), fmt.Sprintf("At most %d arguments to a function are supported.", MAX_ARGS))})
+				panic(parserError{gloxError(p.peek(), fmt.Sprintf("At most %d arguments to a function are supported.", MAX_ARGS))})
 			}
 			arguments = append(arguments, p.expression())
 			if !p.match(COMMA) {

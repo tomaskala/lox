@@ -26,7 +26,7 @@ func (e *Environment) get(name Token) interface{} {
 		return e.enclosing.get(name)
 	} else {
 		message := fmt.Sprintf("Undefined variable '%s'.", name.lexeme)
-		panic(interpreterError{runtimeError(name, message)})
+		panic(interpreterError{gloxError(name, message)})
 	}
 }
 
@@ -37,6 +37,6 @@ func (e *Environment) assign(name Token, value interface{}) {
 		e.enclosing.assign(name, value)
 	} else {
 		message := fmt.Sprintf("Undefined variable '%s'.", name.lexeme)
-		panic(interpreterError{runtimeError(name, message)})
+		panic(interpreterError{gloxError(name, message)})
 	}
 }
