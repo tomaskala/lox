@@ -40,76 +40,8 @@ func (i *Interpreter) Interpret(statements []Stmt) (err error) {
 	return nil
 }
 
-func (i *Interpreter) execute(stmt Stmt) interface{} {
-	return stmt.accept(i)
-}
-
-func (i *Interpreter) visitBlock(stmt Block) interface{} {
-	i.executeBlock(stmt.statements, NewEnvironment(i.environment))
-	return nil
-}
-
-func (i *Interpreter) visitClass(stmt Class) interface{} {
-	return nil
-}
-
-func (i *Interpreter) visitExpression(stmt Expression) interface{} {
-	value := i.evaluate(stmt.expression)
-	if i.interactive {
-		fmt.Println(value)
-	}
-	return nil
-}
-
-func (i *Interpreter) visitFunction(stmt Function) interface{} {
-	function := LoxCallable{
-		declaration: stmt,
-		closure:     i.environment,
-	}
-	i.environment.define(stmt.name.lexeme, function)
-	return nil
-}
-
-func (i *Interpreter) visitIf(stmt If) interface{} {
-	if isTruthy(i.evaluate(stmt.condition)) {
-		i.execute(stmt.thenBranch)
-	} else if stmt.elseBranch != nil {
-		i.execute(stmt.elseBranch)
-	}
-	return nil
-}
-
-func (i *Interpreter) visitPrint(stmt Print) interface{} {
-	value := i.evaluate(stmt.expression)
-	fmt.Println(stringify(value))
-	return nil
-}
-
-func (i *Interpreter) visitReturn(stmt Return) interface{} {
-	var value interface{}
-	if stmt.value != nil {
-		value = i.evaluate(stmt.value)
-	} else {
-		value = nil
-	}
-	panic(returnSignal{value})
-	return nil
-}
-
-func (i *Interpreter) visitVar(stmt Var) interface{} {
-	var value interface{}
-	if stmt.initializer != nil {
-		value = i.evaluate(stmt.initializer)
-	}
-	i.environment.define(stmt.name.lexeme, value)
-	return nil
-}
-
-func (i *Interpreter) visitWhile(stmt While) interface{} {
-	for isTruthy(i.evaluate(stmt.condition)) {
-		i.execute(stmt.body)
-	}
-	return nil
+func (i *Interpreter) evaluate(expr Expr) interface{} {
+	return expr.accept(i)
 }
 
 func (i *Interpreter) visitAssign(expr Assign) interface{} {
@@ -239,8 +171,76 @@ func (i *Interpreter) visitVariable(expr Variable) interface{} {
 	return i.environment.get(expr.name)
 }
 
-func (i *Interpreter) evaluate(expr Expr) interface{} {
-	return expr.accept(i)
+func (i *Interpreter) execute(stmt Stmt) interface{} {
+	return stmt.accept(i)
+}
+
+func (i *Interpreter) visitBlock(stmt Block) interface{} {
+	i.executeBlock(stmt.statements, NewEnvironment(i.environment))
+	return nil
+}
+
+func (i *Interpreter) visitClass(stmt Class) interface{} {
+	return nil
+}
+
+func (i *Interpreter) visitExpression(stmt Expression) interface{} {
+	value := i.evaluate(stmt.expression)
+	if i.interactive {
+		fmt.Println(value)
+	}
+	return nil
+}
+
+func (i *Interpreter) visitFunction(stmt Function) interface{} {
+	function := LoxCallable{
+		declaration: stmt,
+		closure:     i.environment,
+	}
+	i.environment.define(stmt.name.lexeme, function)
+	return nil
+}
+
+func (i *Interpreter) visitIf(stmt If) interface{} {
+	if isTruthy(i.evaluate(stmt.condition)) {
+		i.execute(stmt.thenBranch)
+	} else if stmt.elseBranch != nil {
+		i.execute(stmt.elseBranch)
+	}
+	return nil
+}
+
+func (i *Interpreter) visitPrint(stmt Print) interface{} {
+	value := i.evaluate(stmt.expression)
+	fmt.Println(stringify(value))
+	return nil
+}
+
+func (i *Interpreter) visitReturn(stmt Return) interface{} {
+	var value interface{}
+	if stmt.value != nil {
+		value = i.evaluate(stmt.value)
+	} else {
+		value = nil
+	}
+	panic(returnSignal{value})
+	return nil
+}
+
+func (i *Interpreter) visitVar(stmt Var) interface{} {
+	var value interface{}
+	if stmt.initializer != nil {
+		value = i.evaluate(stmt.initializer)
+	}
+	i.environment.define(stmt.name.lexeme, value)
+	return nil
+}
+
+func (i *Interpreter) visitWhile(stmt While) interface{} {
+	for isTruthy(i.evaluate(stmt.condition)) {
+		i.execute(stmt.body)
+	}
+	return nil
 }
 
 func (i *Interpreter) executeBlock(statements []Stmt, environment *Environment) {
