@@ -197,7 +197,7 @@ func (i *Interpreter) visitExpression(stmt Expression) interface{} {
 }
 
 func (i *Interpreter) visitFunction(stmt Function) interface{} {
-	function := LoxCallable{
+	function := GloxCallable{
 		declaration: stmt,
 		closure:     i.environment,
 	}

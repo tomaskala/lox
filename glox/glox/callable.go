@@ -7,16 +7,16 @@ type Callable interface {
 	call(interpreter *Interpreter, arguments []interface{}) interface{}
 }
 
-type LoxCallable struct {
+type GloxCallable struct {
 	declaration Function
 	closure     *Environment
 }
 
-func (c LoxCallable) arity() int {
+func (c GloxCallable) arity() int {
 	return len(c.declaration.params)
 }
 
-func (c LoxCallable) call(interpreter *Interpreter, arguments []interface{}) (ret interface{}) {
+func (c GloxCallable) call(interpreter *Interpreter, arguments []interface{}) (ret interface{}) {
 	defer func() {
 		if r := recover(); r != nil {
 			if rs, ok := r.(returnSignal); ok {
@@ -34,7 +34,7 @@ func (c LoxCallable) call(interpreter *Interpreter, arguments []interface{}) (re
 	return nil
 }
 
-func (c LoxCallable) String() string {
+func (c GloxCallable) String() string {
 	return fmt.Sprintf("<fn %s>", c.declaration.name.lexeme)
 }
 
