@@ -175,6 +175,10 @@ func (i *Interpreter) execute(stmt Stmt) interface{} {
 	return stmt.accept(i)
 }
 
+func (i *Interpreter) resolve(expr Expr, depth int) {
+
+}
+
 func (i *Interpreter) visitBlock(stmt Block) interface{} {
 	i.executeBlock(stmt.statements, NewEnvironment(i.environment))
 	return nil
