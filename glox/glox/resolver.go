@@ -39,19 +39,19 @@ func (r *Resolver) resolveExpression(expr Expr) {
 	expr.accept(r)
 }
 
-func (r *Resolver) visitAssign(expr Assign) interface{} {
+func (r *Resolver) visitAssign(expr *Assign) interface{} {
 	r.resolveExpression(expr.value)
 	r.resolveLocal(expr, expr.name)
 	return nil
 }
 
-func (r *Resolver) visitBinary(expr Binary) interface{} {
+func (r *Resolver) visitBinary(expr *Binary) interface{} {
 	r.resolveExpression(expr.left)
 	r.resolveExpression(expr.right)
 	return nil
 }
 
-func (r *Resolver) visitCall(expr Call) interface{} {
+func (r *Resolver) visitCall(expr *Call) interface{} {
 	r.resolveExpression(expr.callee)
 	for _, argument := range expr.arguments {
 		r.resolveExpression(argument)
@@ -59,43 +59,43 @@ func (r *Resolver) visitCall(expr Call) interface{} {
 	return nil
 }
 
-func (r *Resolver) visitGet(expr Get) interface{} {
+func (r *Resolver) visitGet(expr *Get) interface{} {
 	return nil
 }
 
-func (r *Resolver) visitGrouping(expr Grouping) interface{} {
+func (r *Resolver) visitGrouping(expr *Grouping) interface{} {
 	r.resolveExpression(expr.expression)
 	return nil
 }
 
-func (r *Resolver) visitLiteral(expr Literal) interface{} {
+func (r *Resolver) visitLiteral(expr *Literal) interface{} {
 	return nil
 }
 
-func (r *Resolver) visitLogical(expr Logical) interface{} {
+func (r *Resolver) visitLogical(expr *Logical) interface{} {
 	r.resolveExpression(expr.left)
 	r.resolveExpression(expr.right)
 	return nil
 }
 
-func (r *Resolver) visitSet(expr Set) interface{} {
+func (r *Resolver) visitSet(expr *Set) interface{} {
 	return nil
 }
 
-func (r *Resolver) visitSuper(expr Super) interface{} {
+func (r *Resolver) visitSuper(expr *Super) interface{} {
 	return nil
 }
 
-func (r *Resolver) visitThis(expr This) interface{} {
+func (r *Resolver) visitThis(expr *This) interface{} {
 	return nil
 }
 
-func (r *Resolver) visitUnary(expr Unary) interface{} {
+func (r *Resolver) visitUnary(expr *Unary) interface{} {
 	r.resolveExpression(expr.right)
 	return nil
 }
 
-func (r *Resolver) visitVariable(expr Variable) interface{} {
+func (r *Resolver) visitVariable(expr *Variable) interface{} {
 	if len(r.scopes) > 0 {
 		scope := r.scopes[len(r.scopes)-1]
 		if initialized, ok := scope[expr.name.lexeme]; ok && !initialized {
@@ -116,30 +116,30 @@ func (r *Resolver) resolveStatements(statements []Stmt) {
 	}
 }
 
-func (r *Resolver) visitBlock(stmt Block) interface{} {
+func (r *Resolver) visitBlock(stmt *Block) interface{} {
 	r.beginScope()
 	r.resolveStatements(stmt.statements)
 	r.endScope()
 	return nil
 }
 
-func (r *Resolver) visitClass(stmt Class) interface{} {
+func (r *Resolver) visitClass(stmt *Class) interface{} {
 	return nil
 }
 
-func (r *Resolver) visitExpression(stmt Expression) interface{} {
+func (r *Resolver) visitExpression(stmt *Expression) interface{} {
 	r.resolveExpression(stmt.expression)
 	return nil
 }
 
-func (r *Resolver) visitFunction(stmt Function) interface{} {
+func (r *Resolver) visitFunction(stmt *Function) interface{} {
 	r.declare(stmt.name)
 	r.define(stmt.name)
 	r.resolveFunction(stmt, FUNCTION)
 	return nil
 }
 
-func (r *Resolver) visitIf(stmt If) interface{} {
+func (r *Resolver) visitIf(stmt *If) interface{} {
 	r.resolveExpression(stmt.condition)
 	r.resolveStatement(stmt.thenBranch)
 	if stmt.elseBranch != nil {
@@ -148,12 +148,12 @@ func (r *Resolver) visitIf(stmt If) interface{} {
 	return nil
 }
 
-func (r *Resolver) visitPrint(stmt Print) interface{} {
+func (r *Resolver) visitPrint(stmt *Print) interface{} {
 	r.resolveExpression(stmt.expression)
 	return nil
 }
 
-func (r *Resolver) visitReturn(stmt Return) interface{} {
+func (r *Resolver) visitReturn(stmt *Return) interface{} {
 	if r.currentFunction == NONE {
 		panic(resolverError{gloxError(stmt.keyword, "Cannot return from a top-level scope.")})
 	}
@@ -163,7 +163,7 @@ func (r *Resolver) visitReturn(stmt Return) interface{} {
 	return nil
 }
 
-func (r *Resolver) visitVar(stmt Var) interface{} {
+func (r *Resolver) visitVar(stmt *Var) interface{} {
 	r.declare(stmt.name)
 	if stmt.initializer != nil {
 		r.resolveExpression(stmt.initializer)
@@ -172,7 +172,7 @@ func (r *Resolver) visitVar(stmt Var) interface{} {
 	return nil
 }
 
-func (r *Resolver) visitWhile(stmt While) interface{} {
+func (r *Resolver) visitWhile(stmt *While) interface{} {
 	r.resolveExpression(stmt.condition)
 	r.resolveStatement(stmt.body)
 	return nil
@@ -217,7 +217,7 @@ func (r *Resolver) resolveLocal(expr Expr, name Token) {
 	}
 }
 
-func (r *Resolver) resolveFunction(function Function, functionType FunctionType) {
+func (r *Resolver) resolveFunction(function *Function, functionType FunctionType) {
 	enclosingFunction := r.currentFunction
 	r.currentFunction = functionType
 	r.beginScope()

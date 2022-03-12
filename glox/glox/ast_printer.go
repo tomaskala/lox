@@ -11,51 +11,51 @@ func (a *AstPrinter) PrintExpr(expr Expr) string {
 	return expr.accept(a).(string)
 }
 
-func (a *AstPrinter) visitAssign(expr Assign) interface{} {
+func (a *AstPrinter) visitAssign(expr *Assign) interface{} {
 	return a.parenthesize2("=", expr.name.lexeme, expr.value)
 }
 
-func (a *AstPrinter) visitBinary(expr Binary) interface{} {
+func (a *AstPrinter) visitBinary(expr *Binary) interface{} {
 	return a.parenthesize(expr.operator.lexeme, expr.left, expr.right)
 }
 
-func (a *AstPrinter) visitCall(expr Call) interface{} {
+func (a *AstPrinter) visitCall(expr *Call) interface{} {
 	return a.parenthesize2("call", expr.callee, expr.arguments)
 }
 
-func (a *AstPrinter) visitGet(expr Get) interface{} {
+func (a *AstPrinter) visitGet(expr *Get) interface{} {
 	return a.parenthesize2(".", expr.object, expr.name.lexeme)
 }
 
-func (a *AstPrinter) visitGrouping(expr Grouping) interface{} {
+func (a *AstPrinter) visitGrouping(expr *Grouping) interface{} {
 	return a.parenthesize("group", expr.expression)
 }
 
-func (a *AstPrinter) visitLiteral(expr Literal) interface{} {
+func (a *AstPrinter) visitLiteral(expr *Literal) interface{} {
 	return fmt.Sprintf("%v", expr.value)
 }
 
-func (a *AstPrinter) visitLogical(expr Logical) interface{} {
+func (a *AstPrinter) visitLogical(expr *Logical) interface{} {
 	return a.parenthesize(expr.operator.lexeme, expr.left, expr.right)
 }
 
-func (a *AstPrinter) visitSet(expr Set) interface{} {
+func (a *AstPrinter) visitSet(expr *Set) interface{} {
 	return a.parenthesize2("=", expr.object, expr.name.lexeme, expr.value)
 }
 
-func (a *AstPrinter) visitSuper(expr Super) interface{} {
+func (a *AstPrinter) visitSuper(expr *Super) interface{} {
 	return a.parenthesize2("super", expr.method)
 }
 
-func (a *AstPrinter) visitThis(expr This) interface{} {
+func (a *AstPrinter) visitThis(expr *This) interface{} {
 	return a.parenthesize2("this", expr.keyword)
 }
 
-func (a *AstPrinter) visitUnary(expr Unary) interface{} {
+func (a *AstPrinter) visitUnary(expr *Unary) interface{} {
 	return a.parenthesize(expr.operator.lexeme, expr.right)
 }
 
-func (a *AstPrinter) visitVariable(expr Variable) interface{} {
+func (a *AstPrinter) visitVariable(expr *Variable) interface{} {
 	return expr.name.lexeme
 }
 
@@ -63,7 +63,7 @@ func (a *AstPrinter) PrintStmt(stmt Stmt) string {
 	return stmt.accept(a).(string)
 }
 
-func (a *AstPrinter) visitBlock(stmt Block) interface{} {
+func (a *AstPrinter) visitBlock(stmt *Block) interface{} {
 	builder := strings.Builder{}
 	builder.WriteString("(block ")
 	for _, statement := range stmt.statements {
@@ -73,7 +73,7 @@ func (a *AstPrinter) visitBlock(stmt Block) interface{} {
 	return builder.String()
 }
 
-func (a *AstPrinter) visitClass(stmt Class) interface{} {
+func (a *AstPrinter) visitClass(stmt *Class) interface{} {
 	builder := strings.Builder{}
 	builder.WriteString(fmt.Sprintf("(class %s", stmt.name.lexeme))
 	if stmt.superclass != nil {
@@ -86,11 +86,11 @@ func (a *AstPrinter) visitClass(stmt Class) interface{} {
 	return builder.String()
 }
 
-func (a *AstPrinter) visitExpression(stmt Expression) interface{} {
+func (a *AstPrinter) visitExpression(stmt *Expression) interface{} {
 	return a.parenthesize(";", stmt.expression)
 }
 
-func (a *AstPrinter) visitFunction(stmt Function) interface{} {
+func (a *AstPrinter) visitFunction(stmt *Function) interface{} {
 	builder := strings.Builder{}
 	builder.WriteString(fmt.Sprintf("(fun %s(", stmt.name.lexeme))
 	for _, param := range stmt.params {
@@ -107,7 +107,7 @@ func (a *AstPrinter) visitFunction(stmt Function) interface{} {
 	return builder.String()
 }
 
-func (a *AstPrinter) visitIf(stmt If) interface{} {
+func (a *AstPrinter) visitIf(stmt *If) interface{} {
 	if stmt.elseBranch == nil {
 		return a.parenthesize2("if", stmt.condition, stmt.thenBranch)
 	} else {
@@ -115,11 +115,11 @@ func (a *AstPrinter) visitIf(stmt If) interface{} {
 	}
 }
 
-func (a *AstPrinter) visitPrint(stmt Print) interface{} {
+func (a *AstPrinter) visitPrint(stmt *Print) interface{} {
 	return a.parenthesize("print", stmt.expression)
 }
 
-func (a *AstPrinter) visitReturn(stmt Return) interface{} {
+func (a *AstPrinter) visitReturn(stmt *Return) interface{} {
 	if stmt.value == nil {
 		return "(return)"
 	} else {
@@ -127,7 +127,7 @@ func (a *AstPrinter) visitReturn(stmt Return) interface{} {
 	}
 }
 
-func (a *AstPrinter) visitVar(stmt Var) interface{} {
+func (a *AstPrinter) visitVar(stmt *Var) interface{} {
 	if stmt.initializer == nil {
 		return a.parenthesize2("var", stmt.name)
 	} else {
@@ -135,7 +135,7 @@ func (a *AstPrinter) visitVar(stmt Var) interface{} {
 	}
 }
 
-func (a *AstPrinter) visitWhile(stmt While) interface{} {
+func (a *AstPrinter) visitWhile(stmt *While) interface{} {
 	builder := strings.Builder{}
 	builder.WriteString("(while ")
 	builder.WriteString(stmt.condition.accept(a).(string))

@@ -19,8 +19,7 @@ func (e *Environment) define(name string, value interface{}) {
 }
 
 func (e *Environment) get(name Token) interface{} {
-	value, ok := e.values[name.lexeme]
-	if ok {
+	if value, ok := e.values[name.lexeme]; ok {
 		return value
 	} else if e.enclosing != nil {
 		return e.enclosing.get(name)

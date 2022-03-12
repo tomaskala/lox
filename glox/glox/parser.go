@@ -57,7 +57,7 @@ func (p *Parser) varDeclaration() Stmt {
 		initializer = p.expression()
 	}
 	p.consume(SEMICOLON, "Expect ';' after a variable declaration.")
-	return Var{
+	return &Var{
 		name:        name,
 		initializer: initializer,
 	}
@@ -81,7 +81,7 @@ func (p *Parser) funDeclaration(kind string) Stmt {
 	p.consume(RIGHT_PAREN, fmt.Sprintf("Expect ')' after %s parameters.", kind))
 	p.consume(LEFT_BRACE, fmt.Sprintf("Expect '{' before %s body.", kind))
 	body := p.block()
-	return Function{
+	return &Function{
 		name:   name,
 		params: parameters,
 		body:   body,
@@ -93,7 +93,7 @@ func (p *Parser) statement() Stmt {
 	case p.match(PRINT):
 		return p.printStatement()
 	case p.match(LEFT_BRACE):
-		return Block{
+		return &Block{
 			statements: p.block(),
 		}
 	case p.match(IF):
@@ -112,7 +112,7 @@ func (p *Parser) statement() Stmt {
 func (p *Parser) printStatement() Stmt {
 	value := p.expression()
 	p.consume(SEMICOLON, "Expect ';' after a value.")
-	return Print{
+	return &Print{
 		expression: value,
 	}
 }
@@ -141,7 +141,7 @@ func (p *Parser) ifStatement() Stmt {
 	} else {
 		elseBranch = nil
 	}
-	return If{
+	return &If{
 		condition:  condition,
 		thenBranch: thenBranch,
 		elseBranch: elseBranch,
@@ -153,7 +153,7 @@ func (p *Parser) whileStatement() Stmt {
 	condition := p.expression()
 	p.consume(RIGHT_PAREN, "Expect ')' after a while statement.")
 	body := p.statement()
-	return While{
+	return &While{
 		condition: condition,
 		body:      body,
 	}
@@ -173,7 +173,7 @@ func (p *Parser) forStatement() Stmt {
 	if !p.check(SEMICOLON) {
 		condition = p.expression()
 	} else {
-		condition = Literal{
+		condition = &Literal{
 			value: true,
 		}
 	}
@@ -185,21 +185,21 @@ func (p *Parser) forStatement() Stmt {
 	p.consume(RIGHT_PAREN, "Expect ')' after a for statement.")
 	body := p.statement()
 	if increment != nil {
-		body = Block{
+		body = &Block{
 			statements: []Stmt{
 				body,
-				Expression{
+				&Expression{
 					expression: increment,
 				},
 			},
 		}
 	}
-	body = While{
+	body = &While{
 		condition: condition,
 		body:      body,
 	}
 	if initializer != nil {
-		body = Block{
+		body = &Block{
 			statements: []Stmt{
 				initializer,
 				body,
@@ -218,7 +218,7 @@ func (p *Parser) returnStatement() Stmt {
 		value = nil
 	}
 	p.consume(SEMICOLON, "Expect ';' after return.")
-	return Return{
+	return &Return{
 		keyword: keyword,
 		value:   value,
 	}
@@ -227,7 +227,7 @@ func (p *Parser) returnStatement() Stmt {
 func (p *Parser) expressionStatement() Stmt {
 	expr := p.expression()
 	p.consume(SEMICOLON, "Expect ';' after an expression.")
-	return Expression{
+	return &Expression{
 		expression: expr,
 	}
 }
@@ -241,8 +241,8 @@ func (p *Parser) assignment() Expr {
 	if p.match(EQUAL) {
 		equals := p.previous()
 		value := p.assignment()
-		if v, ok := expr.(Variable); ok {
-			return Assign{
+		if v, ok := expr.(*Variable); ok {
+			return &Assign{
 				name:  v.name,
 				value: value,
 			}
@@ -258,7 +258,7 @@ func (p *Parser) or() Expr {
 	for p.match(OR) {
 		operator := p.previous()
 		right := p.and()
-		expr = Logical{
+		expr = &Logical{
 			left:     expr,
 			operator: operator,
 			right:    right,
@@ -272,7 +272,7 @@ func (p *Parser) and() Expr {
 	for p.match(AND) {
 		operator := p.previous()
 		right := p.equality()
-		expr = Logical{
+		expr = &Logical{
 			left:     expr,
 			operator: operator,
 			right:    right,
@@ -286,7 +286,7 @@ func (p *Parser) equality() Expr {
 	for p.match(BANG_EQUAL, EQUAL_EQUAL) {
 		operator := p.previous()
 		right := p.comparison()
-		expr = Binary{
+		expr = &Binary{
 			left:     expr,
 			operator: operator,
 			right:    right,
@@ -300,7 +300,7 @@ func (p *Parser) comparison() Expr {
 	for p.match(GREATER, GREATER_EQUAL, LESS, LESS_EQUAL) {
 		operator := p.previous()
 		right := p.term()
-		expr = Binary{
+		expr = &Binary{
 			left:     expr,
 			operator: operator,
 			right:    right,
@@ -314,7 +314,7 @@ func (p *Parser) term() Expr {
 	for p.match(MINUS, PLUS) {
 		operator := p.previous()
 		right := p.factor()
-		expr = Binary{
+		expr = &Binary{
 			left:     expr,
 			operator: operator,
 			right:    right,
@@ -328,7 +328,7 @@ func (p *Parser) factor() Expr {
 	for p.match(SLASH, STAR) {
 		operator := p.previous()
 		right := p.unary()
-		expr = Binary{
+		expr = &Binary{
 			left:     expr,
 			operator: operator,
 			right:    right,
@@ -342,7 +342,7 @@ func (p *Parser) unary() Expr {
 	case p.match(BANG, MINUS):
 		operator := p.previous()
 		right := p.unary()
-		return Unary{
+		return &Unary{
 			operator: operator,
 			right:    right,
 		}
@@ -378,19 +378,19 @@ func (p *Parser) call() Expr {
 func (p *Parser) primary() Expr {
 	switch {
 	case p.match(FALSE):
-		return Literal{value: false}
+		return &Literal{value: false}
 	case p.match(TRUE):
-		return Literal{value: true}
+		return &Literal{value: true}
 	case p.match(NIL):
-		return Literal{value: nil}
+		return &Literal{value: nil}
 	case p.match(NUMBER, STRING):
-		return Literal{value: p.previous().literal}
+		return &Literal{value: p.previous().literal}
 	case p.match(IDENTIFIER):
-		return Variable{name: p.previous()}
+		return &Variable{name: p.previous()}
 	case p.match(LEFT_PAREN):
 		expr := p.expression()
 		p.consume(RIGHT_PAREN, "Expect ')' after an expression.")
-		return Grouping{expression: expr}
+		return &Grouping{expression: expr}
 	default:
 		panic(parserError{gloxError(p.peek(), "Expect an expression.")})
 	}
@@ -470,7 +470,7 @@ func (p *Parser) finishCall(callee Expr) Expr {
 		}
 	}
 	paren := p.consume(RIGHT_PAREN, "Expect ')' after a function call.")
-	return Call{
+	return &Call{
 		callee:    callee,
 		paren:     paren,
 		arguments: arguments,

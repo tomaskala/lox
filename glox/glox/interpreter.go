@@ -46,7 +46,7 @@ func (i *Interpreter) evaluate(expr Expr) interface{} {
 	return expr.accept(i)
 }
 
-func (i *Interpreter) visitAssign(expr Assign) interface{} {
+func (i *Interpreter) visitAssign(expr *Assign) interface{} {
 	value := i.evaluate(expr.value)
 	if distance, ok := i.locals[expr]; ok {
 		i.environment.assignAt(distance, expr.name, value)
@@ -56,7 +56,7 @@ func (i *Interpreter) visitAssign(expr Assign) interface{} {
 	return value
 }
 
-func (i *Interpreter) visitBinary(expr Binary) interface{} {
+func (i *Interpreter) visitBinary(expr *Binary) interface{} {
 	left := i.evaluate(expr.left)
 	right := i.evaluate(expr.right)
 	switch expr.operator.tokenType {
@@ -107,7 +107,7 @@ func (i *Interpreter) visitBinary(expr Binary) interface{} {
 	return nil
 }
 
-func (i *Interpreter) visitCall(expr Call) interface{} {
+func (i *Interpreter) visitCall(expr *Call) interface{} {
 	callee := i.evaluate(expr.callee)
 	arguments := make([]interface{}, 0)
 	for _, argument := range expr.arguments {
@@ -122,19 +122,19 @@ func (i *Interpreter) visitCall(expr Call) interface{} {
 	return callable.call(i, arguments)
 }
 
-func (i *Interpreter) visitGet(expr Get) interface{} {
+func (i *Interpreter) visitGet(expr *Get) interface{} {
 	return nil
 }
 
-func (i *Interpreter) visitGrouping(expr Grouping) interface{} {
+func (i *Interpreter) visitGrouping(expr *Grouping) interface{} {
 	return i.evaluate(expr.expression)
 }
 
-func (i *Interpreter) visitLiteral(expr Literal) interface{} {
+func (i *Interpreter) visitLiteral(expr *Literal) interface{} {
 	return expr.value
 }
 
-func (i *Interpreter) visitLogical(expr Logical) interface{} {
+func (i *Interpreter) visitLogical(expr *Logical) interface{} {
 	left := i.evaluate(expr.left)
 	if expr.operator.tokenType == OR {
 		if isTruthy(left) {
@@ -148,19 +148,19 @@ func (i *Interpreter) visitLogical(expr Logical) interface{} {
 	return i.evaluate(expr.right)
 }
 
-func (i *Interpreter) visitSet(expr Set) interface{} {
+func (i *Interpreter) visitSet(expr *Set) interface{} {
 	return nil
 }
 
-func (i *Interpreter) visitSuper(expr Super) interface{} {
+func (i *Interpreter) visitSuper(expr *Super) interface{} {
 	return nil
 }
 
-func (i *Interpreter) visitThis(expr This) interface{} {
+func (i *Interpreter) visitThis(expr *This) interface{} {
 	return nil
 }
 
-func (i *Interpreter) visitUnary(expr Unary) interface{} {
+func (i *Interpreter) visitUnary(expr *Unary) interface{} {
 	right := i.evaluate(expr.right)
 	switch expr.operator.tokenType {
 	case BANG:
@@ -173,7 +173,7 @@ func (i *Interpreter) visitUnary(expr Unary) interface{} {
 	return nil
 }
 
-func (i *Interpreter) visitVariable(expr Variable) interface{} {
+func (i *Interpreter) visitVariable(expr *Variable) interface{} {
 	return i.lookupVariable(expr.name, expr)
 }
 
@@ -185,16 +185,16 @@ func (i *Interpreter) resolve(expr Expr, depth int) {
 	i.locals[expr] = depth
 }
 
-func (i *Interpreter) visitBlock(stmt Block) interface{} {
+func (i *Interpreter) visitBlock(stmt *Block) interface{} {
 	i.executeBlock(stmt.statements, NewEnvironment(i.environment))
 	return nil
 }
 
-func (i *Interpreter) visitClass(stmt Class) interface{} {
+func (i *Interpreter) visitClass(stmt *Class) interface{} {
 	return nil
 }
 
-func (i *Interpreter) visitExpression(stmt Expression) interface{} {
+func (i *Interpreter) visitExpression(stmt *Expression) interface{} {
 	value := i.evaluate(stmt.expression)
 	if i.interactive {
 		fmt.Println(value)
@@ -202,7 +202,7 @@ func (i *Interpreter) visitExpression(stmt Expression) interface{} {
 	return nil
 }
 
-func (i *Interpreter) visitFunction(stmt Function) interface{} {
+func (i *Interpreter) visitFunction(stmt *Function) interface{} {
 	function := GloxCallable{
 		declaration: stmt,
 		closure:     i.environment,
@@ -211,7 +211,7 @@ func (i *Interpreter) visitFunction(stmt Function) interface{} {
 	return nil
 }
 
-func (i *Interpreter) visitIf(stmt If) interface{} {
+func (i *Interpreter) visitIf(stmt *If) interface{} {
 	if isTruthy(i.evaluate(stmt.condition)) {
 		i.execute(stmt.thenBranch)
 	} else if stmt.elseBranch != nil {
@@ -220,13 +220,13 @@ func (i *Interpreter) visitIf(stmt If) interface{} {
 	return nil
 }
 
-func (i *Interpreter) visitPrint(stmt Print) interface{} {
+func (i *Interpreter) visitPrint(stmt *Print) interface{} {
 	value := i.evaluate(stmt.expression)
 	fmt.Println(stringify(value))
 	return nil
 }
 
-func (i *Interpreter) visitReturn(stmt Return) interface{} {
+func (i *Interpreter) visitReturn(stmt *Return) interface{} {
 	var value interface{}
 	if stmt.value != nil {
 		value = i.evaluate(stmt.value)
@@ -237,7 +237,7 @@ func (i *Interpreter) visitReturn(stmt Return) interface{} {
 	return nil
 }
 
-func (i *Interpreter) visitVar(stmt Var) interface{} {
+func (i *Interpreter) visitVar(stmt *Var) interface{} {
 	var value interface{}
 	if stmt.initializer != nil {
 		value = i.evaluate(stmt.initializer)
@@ -246,7 +246,7 @@ func (i *Interpreter) visitVar(stmt Var) interface{} {
 	return nil
 }
 
-func (i *Interpreter) visitWhile(stmt While) interface{} {
+func (i *Interpreter) visitWhile(stmt *While) interface{} {
 	for isTruthy(i.evaluate(stmt.condition)) {
 		i.execute(stmt.body)
 	}

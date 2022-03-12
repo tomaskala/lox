@@ -8,7 +8,7 @@ type Callable interface {
 }
 
 type GloxCallable struct {
-	declaration Function
+	declaration *Function
 	closure     *Environment
 }
 
