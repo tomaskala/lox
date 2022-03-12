@@ -51,7 +51,12 @@ func run(interpreter *glox.Interpreter, source string) []error {
 	if errors != nil {
 		return errors
 	}
-	err := interpreter.Interpret(statements)
+	resolver := glox.NewResolver(interpreter)
+	err := resolver.Resolve(statements)
+	if err != nil {
+		return []error{err}
+	}
+	err = interpreter.Interpret(statements)
 	if err != nil {
 		return []error{err}
 	}

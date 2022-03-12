@@ -12,6 +12,7 @@ type returnSignal struct {
 type Interpreter struct {
 	globals     *Environment
 	environment *Environment
+	locals      map[Expr]int
 	interactive bool
 }
 
@@ -20,6 +21,7 @@ func NewInterpreter(interactive bool) *Interpreter {
 	return &Interpreter{
 		globals:     environment,
 		environment: environment,
+		locals:      make(map[Expr]int),
 		interactive: interactive,
 	}
 }
@@ -46,7 +48,11 @@ func (i *Interpreter) evaluate(expr Expr) interface{} {
 
 func (i *Interpreter) visitAssign(expr Assign) interface{} {
 	value := i.evaluate(expr.value)
-	i.environment.assign(expr.name, value)
+	if distance, ok := i.locals[expr]; ok {
+		i.environment.assignAt(distance, expr.name, value)
+	} else {
+		i.globals.assign(expr.name, value)
+	}
 	return value
 }
 
@@ -168,7 +174,7 @@ func (i *Interpreter) visitUnary(expr Unary) interface{} {
 }
 
 func (i *Interpreter) visitVariable(expr Variable) interface{} {
-	return i.environment.get(expr.name)
+	return i.lookupVariable(expr.name, expr)
 }
 
 func (i *Interpreter) execute(stmt Stmt) interface{} {
@@ -176,7 +182,7 @@ func (i *Interpreter) execute(stmt Stmt) interface{} {
 }
 
 func (i *Interpreter) resolve(expr Expr, depth int) {
-
+	i.locals[expr] = depth
 }
 
 func (i *Interpreter) visitBlock(stmt Block) interface{} {
@@ -255,6 +261,14 @@ func (i *Interpreter) executeBlock(statements []Stmt, environment *Environment) 
 	i.environment = environment
 	for _, statement := range statements {
 		i.execute(statement)
+	}
+}
+
+func (i *Interpreter) lookupVariable(name Token, expr Expr) interface{} {
+	if distance, ok := i.locals[expr]; ok {
+		return i.environment.getAt(distance, name.lexeme)
+	} else {
+		return i.globals.get(name)
 	}
 }
 

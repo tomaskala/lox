@@ -1,15 +1,38 @@
 package glox
 
+type FunctionType = int
+
+const (
+	NONE FunctionType = iota
+	FUNCTION
+)
+
 type Resolver struct {
-	interpreter *Interpreter
-	scopes      []map[string]bool
+	interpreter     *Interpreter
+	scopes          []map[string]bool
+	currentFunction FunctionType
 }
 
 func NewResolver(interpreter *Interpreter) *Resolver {
 	return &Resolver{
-		interpreter: interpreter,
-		scopes:      nil,
+		interpreter:     interpreter,
+		scopes:          nil,
+		currentFunction: NONE,
 	}
+}
+
+func (r *Resolver) Resolve(statements []Stmt) (err error) {
+	defer func() {
+		if r := recover(); r != nil {
+			if re, ok := r.(resolverError); ok {
+				err = re
+			} else {
+				panic(r)
+			}
+		}
+	}()
+	r.resolveStatements(statements)
+	return nil
 }
 
 func (r *Resolver) resolveExpression(expr Expr) {
@@ -112,7 +135,7 @@ func (r *Resolver) visitExpression(stmt Expression) interface{} {
 func (r *Resolver) visitFunction(stmt Function) interface{} {
 	r.declare(stmt.name)
 	r.define(stmt.name)
-	r.resolveFunction(stmt)
+	r.resolveFunction(stmt, FUNCTION)
 	return nil
 }
 
@@ -131,6 +154,9 @@ func (r *Resolver) visitPrint(stmt Print) interface{} {
 }
 
 func (r *Resolver) visitReturn(stmt Return) interface{} {
+	if r.currentFunction == NONE {
+		panic(resolverError{gloxError(stmt.keyword, "Cannot return from a top-level scope.")})
+	}
 	if stmt.value != nil {
 		r.resolveExpression(stmt.value)
 	}
@@ -168,6 +194,9 @@ func (r *Resolver) declare(name Token) {
 		return
 	}
 	scope := r.scopes[len(r.scopes)-1]
+	if _, ok := scope[name.lexeme]; ok {
+		panic(resolverError{gloxError(name, "A variable with this name already exists in this scope.")})
+	}
 	scope[name.lexeme] = false
 }
 
@@ -188,7 +217,9 @@ func (r *Resolver) resolveLocal(expr Expr, name Token) {
 	}
 }
 
-func (r *Resolver) resolveFunction(function Function) {
+func (r *Resolver) resolveFunction(function Function, functionType FunctionType) {
+	enclosingFunction := r.currentFunction
+	r.currentFunction = functionType
 	r.beginScope()
 	for _, param := range function.params {
 		r.declare(param)
@@ -196,4 +227,5 @@ func (r *Resolver) resolveFunction(function Function) {
 	}
 	r.resolveStatements(function.body)
 	r.endScope()
+	r.currentFunction = enclosingFunction
 }
