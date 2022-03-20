@@ -40,6 +40,7 @@ func runPrompt() {
 		}
 	}
 }
+
 func run(interpreter *glox.Interpreter, source string) []error {
 	scanner := glox.NewScanner(source)
 	tokens, errors := scanner.ScanTokens()
@@ -68,6 +69,7 @@ func printErrors(errors []error) {
 		fmt.Fprintln(os.Stderr, err)
 	}
 }
+
 func main() {
 	programName := os.Args[0]
 	numArgs := len(os.Args[1:])
