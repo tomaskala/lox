@@ -50,7 +50,7 @@ func (p *Parser) declaration() (stmt Stmt, err error) {
 	}
 }
 
-func (p *Parser) varDeclaration() Stmt {
+func (p *Parser) varDeclaration() *Var {
 	name := p.consume(IDENTIFIER, "Expect a variable name.")
 	var initializer Expr
 	if p.match(EQUAL) {
@@ -63,7 +63,7 @@ func (p *Parser) varDeclaration() Stmt {
 	}
 }
 
-func (p *Parser) funDeclaration(kind string) Stmt {
+func (p *Parser) funDeclaration(kind string) *Function {
 	name := p.consume(IDENTIFIER, fmt.Sprintf("Expect a %s name.", kind))
 	p.consume(LEFT_PAREN, fmt.Sprintf("Expect '(' after %s name.", kind))
 	parameters := make([]Token, 0)
@@ -109,7 +109,7 @@ func (p *Parser) statement() Stmt {
 	}
 }
 
-func (p *Parser) printStatement() Stmt {
+func (p *Parser) printStatement() *Print {
 	value := p.expression()
 	p.consume(SEMICOLON, "Expect ';' after a value.")
 	return &Print{
@@ -130,7 +130,7 @@ func (p *Parser) block() []Stmt {
 	return statements
 }
 
-func (p *Parser) ifStatement() Stmt {
+func (p *Parser) ifStatement() *If {
 	p.consume(LEFT_PAREN, "Expect '(' after 'if'.")
 	condition := p.expression()
 	p.consume(RIGHT_PAREN, "Expect ')' after an if condition.")
@@ -148,7 +148,7 @@ func (p *Parser) ifStatement() Stmt {
 	}
 }
 
-func (p *Parser) whileStatement() Stmt {
+func (p *Parser) whileStatement() *While {
 	p.consume(LEFT_PAREN, "Expect '(' after 'while'.")
 	condition := p.expression()
 	p.consume(RIGHT_PAREN, "Expect ')' after a while statement.")
@@ -209,7 +209,7 @@ func (p *Parser) forStatement() Stmt {
 	return body
 }
 
-func (p *Parser) returnStatement() Stmt {
+func (p *Parser) returnStatement() *Return {
 	keyword := p.previous()
 	var value Expr
 	if !p.check(SEMICOLON) {
@@ -224,7 +224,7 @@ func (p *Parser) returnStatement() Stmt {
 	}
 }
 
-func (p *Parser) expressionStatement() Stmt {
+func (p *Parser) expressionStatement() *Expression {
 	expr := p.expression()
 	p.consume(SEMICOLON, "Expect ';' after an expression.")
 	return &Expression{
