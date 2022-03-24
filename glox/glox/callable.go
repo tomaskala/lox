@@ -12,11 +12,11 @@ type GloxCallable struct {
 	closure     *Environment
 }
 
-func (c GloxCallable) arity() int {
+func (c *GloxCallable) arity() int {
 	return len(c.declaration.params)
 }
 
-func (c GloxCallable) call(interpreter *Interpreter, arguments []interface{}) (ret interface{}) {
+func (c *GloxCallable) call(interpreter *Interpreter, arguments []interface{}) (ret interface{}) {
 	defer func() {
 		if r := recover(); r != nil {
 			if rs, ok := r.(returnSignal); ok {
@@ -43,11 +43,11 @@ type BuiltinCallable struct {
 	builtinFunction func(interpreter *Interpreter, arguments []interface{}) interface{}
 }
 
-func (b BuiltinCallable) arity() int {
+func (b *BuiltinCallable) arity() int {
 	return b.builtinArity
 }
 
-func (b BuiltinCallable) call(interpreter *Interpreter, arguments []interface{}) interface{} {
+func (b *BuiltinCallable) call(interpreter *Interpreter, arguments []interface{}) interface{} {
 	return b.builtinFunction(interpreter, arguments)
 }
 

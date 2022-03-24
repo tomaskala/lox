@@ -43,6 +43,8 @@ func (p *Parser) declaration() (stmt Stmt, err error) {
 	}()
 	if p.match(VAR) {
 		return p.varDeclaration(), nil
+	} else if p.match(CLASS) {
+		return p.classDeclaration(), nil
 	} else if p.match(FUN) {
 		return p.funDeclaration("function"), nil
 	} else {
@@ -60,6 +62,21 @@ func (p *Parser) varDeclaration() *Var {
 	return &Var{
 		name:        name,
 		initializer: initializer,
+	}
+}
+
+func (p *Parser) classDeclaration() *Class {
+	name := p.consume(IDENTIFIER, "Expect a class name.")
+	p.consume(LEFT_BRACE, "Expect '{' before a class body.")
+	methods := make([]*Function, 0)
+	for !p.check(RIGHT_BRACE) && !p.atEnd() {
+		methods = append(methods, p.funDeclaration("method"))
+	}
+	p.consume(RIGHT_BRACE, "Expect '}' after a class body.")
+	return &Class{
+		name:       name,
+		superclass: nil,
+		methods:    methods,
 	}
 }
 
@@ -246,6 +263,12 @@ func (p *Parser) assignment() Expr {
 				name:  v.name,
 				value: value,
 			}
+		} else if g, ok := expr.(*Get); ok {
+			return &Set{
+				object: g.object,
+				name:   g.name,
+				value:  value,
+			}
 		} else {
 			panic(parserError{gloxError(equals, "Invalid assignment target.")})
 		}
@@ -368,6 +391,12 @@ func (p *Parser) call() Expr {
 	for {
 		if p.match(LEFT_PAREN) {
 			expr = p.finishCall(expr)
+		} else if p.match(DOT) {
+			name := p.consume(IDENTIFIER, "Expect a property after a '.'.")
+			expr = &Get{
+				object: expr,
+				name:   name,
+			}
 		} else {
 			break
 		}

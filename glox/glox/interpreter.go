@@ -123,7 +123,12 @@ func (i *Interpreter) visitCall(expr *Call) interface{} {
 }
 
 func (i *Interpreter) visitGet(expr *Get) interface{} {
-	return nil
+	object := i.evaluate(expr.object)
+	if i, ok := object.(*GloxInstance); ok {
+		return i.get(expr.name)
+	} else {
+		panic(interpreterError{gloxError(expr.name, "Only class instances have properties.")})
+	}
 }
 
 func (i *Interpreter) visitGrouping(expr *Grouping) interface{} {
@@ -149,7 +154,14 @@ func (i *Interpreter) visitLogical(expr *Logical) interface{} {
 }
 
 func (i *Interpreter) visitSet(expr *Set) interface{} {
-	return nil
+	object := i.evaluate(expr.object)
+	if g, ok := object.(*GloxInstance); ok {
+		value := i.evaluate(expr.value)
+		g.set(expr.name, value)
+		return value
+	} else {
+		panic(interpreterError{gloxError(expr.name, "Only class instances have fields.")})
+	}
 }
 
 func (i *Interpreter) visitSuper(expr *Super) interface{} {
@@ -191,6 +203,20 @@ func (i *Interpreter) visitBlock(stmt *Block) interface{} {
 }
 
 func (i *Interpreter) visitClass(stmt *Class) interface{} {
+	i.environment.define(stmt.name.lexeme, nil)
+	methods := make(map[string]*GloxCallable)
+	for _, method := range stmt.methods {
+		function := &GloxCallable{
+			declaration: method,
+			closure:     i.environment,
+		}
+		methods[method.name.lexeme] = function
+	}
+	class := &GloxClass{
+		name:    stmt.name.lexeme,
+		methods: methods,
+	}
+	i.environment.assign(stmt.name, class)
 	return nil
 }
 
@@ -203,7 +229,7 @@ func (i *Interpreter) visitExpression(stmt *Expression) interface{} {
 }
 
 func (i *Interpreter) visitFunction(stmt *Function) interface{} {
-	function := GloxCallable{
+	function := &GloxCallable{
 		declaration: stmt,
 		closure:     i.environment,
 	}

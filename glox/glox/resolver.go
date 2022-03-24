@@ -5,6 +5,7 @@ type FunctionType = int
 const (
 	NONE FunctionType = iota
 	FUNCTION
+	METHOD
 )
 
 type Resolver struct {
@@ -60,6 +61,7 @@ func (r *Resolver) visitCall(expr *Call) interface{} {
 }
 
 func (r *Resolver) visitGet(expr *Get) interface{} {
+	r.resolveExpression(expr.object)
 	return nil
 }
 
@@ -79,6 +81,8 @@ func (r *Resolver) visitLogical(expr *Logical) interface{} {
 }
 
 func (r *Resolver) visitSet(expr *Set) interface{} {
+	r.resolveExpression(expr.value)
+	r.resolveExpression(expr.object)
 	return nil
 }
 
@@ -124,6 +128,11 @@ func (r *Resolver) visitBlock(stmt *Block) interface{} {
 }
 
 func (r *Resolver) visitClass(stmt *Class) interface{} {
+	r.declare(stmt.name)
+	r.define(stmt.name)
+	for _, method := range stmt.methods {
+		r.resolveFunction(method, METHOD)
+	}
 	return nil
 }
 

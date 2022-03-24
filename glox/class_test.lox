@@ -1,0 +1,9 @@
+class TestClass {
+    test_method() {
+        return "this is a test";
+    }
+}
+
+print TestClass;
+print TestClass();
+print TestClass().test_method();

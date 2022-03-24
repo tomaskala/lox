@@ -4,7 +4,7 @@ import "time"
 
 func NewGlobals() *Environment {
 	values := map[string]interface{}{
-		"clock": BuiltinCallable{
+		"clock": &BuiltinCallable{
 			builtinArity: 0,
 			builtinFunction: func(interpreter *Interpreter, arguments []interface{}) interface{} {
 				return time.Now().Unix()
