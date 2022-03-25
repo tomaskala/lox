@@ -8,8 +8,9 @@ type Callable interface {
 }
 
 type GloxCallable struct {
-	declaration *Function
-	closure     *Environment
+	declaration   *Function
+	closure       *Environment
+	isInitializer bool
 }
 
 func (c *GloxCallable) arity() int {
@@ -20,7 +21,11 @@ func (c *GloxCallable) call(interpreter *Interpreter, arguments []interface{}) (
 	defer func() {
 		if r := recover(); r != nil {
 			if rs, ok := r.(returnSignal); ok {
-				ret = rs.value
+				if c.isInitializer {
+					ret = c.closure.getAt(0, "this")
+				} else {
+					ret = rs.value
+				}
 			} else {
 				panic(r)
 			}
@@ -31,15 +36,20 @@ func (c *GloxCallable) call(interpreter *Interpreter, arguments []interface{}) (
 		environment.define(c.declaration.params[i].lexeme, arguments[i])
 	}
 	interpreter.executeBlock(c.declaration.body, environment)
-	return nil
+	if c.isInitializer {
+		return c.closure.getAt(0, "this")
+	} else {
+		return nil
+	}
 }
 
 func (c *GloxCallable) bind(instance *GloxInstance) *GloxCallable {
 	environment := NewEnvironment(c.closure)
 	environment.define("this", instance)
 	return &GloxCallable{
-		declaration: c.declaration,
-		closure:     environment,
+		declaration:   c.declaration,
+		closure:       environment,
+		isInitializer: c.isInitializer,
 	}
 }
 

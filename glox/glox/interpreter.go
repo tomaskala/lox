@@ -207,8 +207,9 @@ func (i *Interpreter) visitClass(stmt *Class) interface{} {
 	methods := make(map[string]*GloxCallable)
 	for _, method := range stmt.methods {
 		function := &GloxCallable{
-			declaration: method,
-			closure:     i.environment,
+			declaration:   method,
+			closure:       i.environment,
+			isInitializer: method.name.lexeme == "init",
 		}
 		methods[method.name.lexeme] = function
 	}
@@ -230,8 +231,9 @@ func (i *Interpreter) visitExpression(stmt *Expression) interface{} {
 
 func (i *Interpreter) visitFunction(stmt *Function) interface{} {
 	function := &GloxCallable{
-		declaration: stmt,
-		closure:     i.environment,
+		declaration:   stmt,
+		closure:       i.environment,
+		isInitializer: false,
 	}
 	i.environment.define(stmt.name.lexeme, function)
 	return nil

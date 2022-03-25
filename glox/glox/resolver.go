@@ -6,6 +6,7 @@ const (
 	NO_FUNCTION FunctionType = iota
 	IN_FUNCTION
 	IN_METHOD
+	IN_INITIALIZER
 )
 
 type ClassType = int
@@ -148,7 +149,11 @@ func (r *Resolver) visitClass(stmt *Class) interface{} {
 	r.beginScope()
 	r.scopes[len(r.scopes)-1]["this"] = true
 	for _, method := range stmt.methods {
-		r.resolveFunction(method, IN_METHOD)
+		declaration := IN_METHOD
+		if method.name.lexeme == "init" {
+			declaration = IN_INITIALIZER
+		}
+		r.resolveFunction(method, declaration)
 	}
 	r.endScope()
 	r.currentClass = enclosingClass
@@ -186,6 +191,9 @@ func (r *Resolver) visitReturn(stmt *Return) interface{} {
 		panic(resolverError{gloxError(stmt.keyword, "Cannot return from a top-level scope.")})
 	}
 	if stmt.value != nil {
+		if r.currentFunction == IN_INITIALIZER {
+			panic(resolverError{gloxError(stmt.keyword, "Cannot return from an initializer.")})
+		}
 		r.resolveExpression(stmt.value)
 	}
 	return nil

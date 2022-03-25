@@ -18,3 +18,24 @@ class Cake {
 var cake = Cake();
 cake.flavor = "chocolate";
 cake.taste();
+
+class Square {
+    init(n) {
+        this.n = n;
+    }
+
+    area() {
+        return this.n * this.n;
+    }
+
+    perimeter() {
+        return 4 * this.n;
+    }
+}
+
+var square1 = Square(10);
+var square2 = Square(3);
+print square1.area();
+print square2.area();
+print square1.perimeter();
+print square2.perimeter();

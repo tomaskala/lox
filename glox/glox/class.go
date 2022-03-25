@@ -13,14 +13,22 @@ type GloxInstance struct {
 }
 
 func (g *GloxClass) arity() int {
-	return 0
+	if initializer := g.findMethod("init"); initializer != nil {
+		return initializer.arity()
+	} else {
+		return 0
+	}
 }
 
 func (g *GloxClass) call(interpreter *Interpreter, arguments []interface{}) interface{} {
-	return &GloxInstance{
+	instance := &GloxInstance{
 		class:  g,
 		fields: make(map[string]interface{}),
 	}
+	if initializer := g.findMethod("init"); initializer != nil {
+		initializer.bind(instance).call(interpreter, arguments)
+	}
+	return instance
 }
 
 func (g *GloxClass) findMethod(name string) *GloxCallable {
