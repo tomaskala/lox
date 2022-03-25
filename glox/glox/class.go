@@ -39,7 +39,7 @@ func (g *GloxInstance) get(name Token) interface{} {
 	if field, ok := g.fields[name.lexeme]; ok {
 		return field
 	} else if method := g.class.findMethod(name.lexeme); method != nil {
-		return method
+		return method.bind(g)
 	} else {
 		message := fmt.Sprintf("Undefined property '%s'.", name.lexeme)
 		panic(interpreterError{gloxError(name, message)})

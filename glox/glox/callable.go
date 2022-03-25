@@ -34,6 +34,15 @@ func (c *GloxCallable) call(interpreter *Interpreter, arguments []interface{}) (
 	return nil
 }
 
+func (c *GloxCallable) bind(instance *GloxInstance) *GloxCallable {
+	environment := NewEnvironment(c.closure)
+	environment.define("this", instance)
+	return &GloxCallable{
+		declaration: c.declaration,
+		closure:     environment,
+	}
+}
+
 func (c GloxCallable) String() string {
 	return fmt.Sprintf("<fn %s>", c.declaration.name.lexeme)
 }

@@ -414,6 +414,8 @@ func (p *Parser) primary() Expr {
 		return &Literal{value: nil}
 	case p.match(NUMBER, STRING):
 		return &Literal{value: p.previous().literal}
+	case p.match(THIS):
+		return &This{keyword: p.previous()}
 	case p.match(IDENTIFIER):
 		return &Variable{name: p.previous()}
 	case p.match(LEFT_PAREN):

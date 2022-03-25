@@ -169,7 +169,7 @@ func (i *Interpreter) visitSuper(expr *Super) interface{} {
 }
 
 func (i *Interpreter) visitThis(expr *This) interface{} {
-	return nil
+	return i.lookupVariable(expr.keyword, expr)
 }
 
 func (i *Interpreter) visitUnary(expr *Unary) interface{} {

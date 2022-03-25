@@ -3,22 +3,31 @@ package glox
 type FunctionType = int
 
 const (
-	NONE FunctionType = iota
-	FUNCTION
-	METHOD
+	NO_FUNCTION FunctionType = iota
+	IN_FUNCTION
+	IN_METHOD
+)
+
+type ClassType = int
+
+const (
+	NO_CLASS ClassType = iota
+	IN_CLASS
 )
 
 type Resolver struct {
 	interpreter     *Interpreter
 	scopes          []map[string]bool
 	currentFunction FunctionType
+	currentClass    ClassType
 }
 
 func NewResolver(interpreter *Interpreter) *Resolver {
 	return &Resolver{
 		interpreter:     interpreter,
 		scopes:          nil,
-		currentFunction: NONE,
+		currentFunction: NO_FUNCTION,
+		currentClass:    NO_CLASS,
 	}
 }
 
@@ -91,6 +100,10 @@ func (r *Resolver) visitSuper(expr *Super) interface{} {
 }
 
 func (r *Resolver) visitThis(expr *This) interface{} {
+	if r.currentClass == NO_CLASS {
+		panic(resolverError{gloxError(expr.keyword, "Cannot use 'this' outside of a class.")})
+	}
+	r.resolveLocal(expr, expr.keyword)
 	return nil
 }
 
@@ -128,11 +141,17 @@ func (r *Resolver) visitBlock(stmt *Block) interface{} {
 }
 
 func (r *Resolver) visitClass(stmt *Class) interface{} {
+	enclosingClass := r.currentClass
+	r.currentClass = IN_CLASS
 	r.declare(stmt.name)
 	r.define(stmt.name)
+	r.beginScope()
+	r.scopes[len(r.scopes)-1]["this"] = true
 	for _, method := range stmt.methods {
-		r.resolveFunction(method, METHOD)
+		r.resolveFunction(method, IN_METHOD)
 	}
+	r.endScope()
+	r.currentClass = enclosingClass
 	return nil
 }
 
@@ -144,7 +163,7 @@ func (r *Resolver) visitExpression(stmt *Expression) interface{} {
 func (r *Resolver) visitFunction(stmt *Function) interface{} {
 	r.declare(stmt.name)
 	r.define(stmt.name)
-	r.resolveFunction(stmt, FUNCTION)
+	r.resolveFunction(stmt, IN_FUNCTION)
 	return nil
 }
 
@@ -163,7 +182,7 @@ func (r *Resolver) visitPrint(stmt *Print) interface{} {
 }
 
 func (r *Resolver) visitReturn(stmt *Return) interface{} {
-	if r.currentFunction == NONE {
+	if r.currentFunction == NO_FUNCTION {
 		panic(resolverError{gloxError(stmt.keyword, "Cannot return from a top-level scope.")})
 	}
 	if stmt.value != nil {

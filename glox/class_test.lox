@@ -7,3 +7,14 @@ class TestClass {
 print TestClass;
 print TestClass();
 print TestClass().test_method();
+
+class Cake {
+    taste() {
+        var adjective = "delicious";
+        print "The " + this.flavor + " cake is " + adjective + "!";
+    }
+}
+
+var cake = Cake();
+cake.flavor = "chocolate";
+cake.taste();
