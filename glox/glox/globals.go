@@ -7,7 +7,7 @@ func NewGlobals() *Environment {
 		"clock": &BuiltinCallable{
 			builtinArity: 0,
 			builtinFunction: func(interpreter *Interpreter, arguments []interface{}) interface{} {
-				return time.Now().Unix()
+				return float64(time.Now().Unix())
 			},
 		},
 	}
