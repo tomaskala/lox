@@ -14,6 +14,7 @@ type ClassType = int
 const (
 	NO_CLASS ClassType = iota
 	IN_CLASS
+	IN_SUBCLASS
 )
 
 type Resolver struct {
@@ -97,6 +98,12 @@ func (r *Resolver) visitSet(expr *Set) interface{} {
 }
 
 func (r *Resolver) visitSuper(expr *Super) interface{} {
+	if r.currentClass == NO_CLASS {
+		panic(resolverError{gloxError(expr.keyword, "Cannot use 'super' outside of a class.")})
+	} else if r.currentClass != IN_SUBCLASS {
+		panic(resolverError{gloxError(expr.keyword, "Cannot use 'super' in a class with no superclass.")})
+	}
+	r.resolveLocal(expr, expr.keyword)
 	return nil
 }
 
@@ -146,6 +153,15 @@ func (r *Resolver) visitClass(stmt *Class) interface{} {
 	r.currentClass = IN_CLASS
 	r.declare(stmt.name)
 	r.define(stmt.name)
+	if stmt.superclass != nil {
+		if stmt.name.lexeme == stmt.superclass.name.lexeme {
+			panic(resolverError{gloxError(stmt.superclass.name, "A class cannot inherit from itself.")})
+		}
+		r.currentClass = IN_SUBCLASS
+		r.resolveExpression(stmt.superclass)
+		r.beginScope()
+		r.scopes[len(r.scopes)-1]["super"] = true
+	}
 	r.beginScope()
 	r.scopes[len(r.scopes)-1]["this"] = true
 	for _, method := range stmt.methods {
@@ -156,6 +172,9 @@ func (r *Resolver) visitClass(stmt *Class) interface{} {
 		r.resolveFunction(method, declaration)
 	}
 	r.endScope()
+	if stmt.superclass != nil {
+		r.endScope()
+	}
 	r.currentClass = enclosingClass
 	return nil
 }

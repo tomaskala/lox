@@ -3,8 +3,9 @@ package glox
 import "fmt"
 
 type GloxClass struct {
-	name    string
-	methods map[string]*GloxCallable
+	name       string
+	superclass *GloxClass
+	methods    map[string]*GloxCallable
 }
 
 type GloxInstance struct {
@@ -34,6 +35,8 @@ func (g *GloxClass) call(interpreter *Interpreter, arguments []interface{}) inte
 func (g *GloxClass) findMethod(name string) *GloxCallable {
 	if method, ok := g.methods[name]; ok {
 		return method
+	} else if g.superclass != nil {
+		return g.superclass.findMethod(name)
 	} else {
 		return nil
 	}

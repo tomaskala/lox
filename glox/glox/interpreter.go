@@ -165,7 +165,15 @@ func (i *Interpreter) visitSet(expr *Set) interface{} {
 }
 
 func (i *Interpreter) visitSuper(expr *Super) interface{} {
-	return nil
+	distance := i.locals[expr]
+	superclass := i.environment.getAt(distance, "super").(*GloxClass)
+	object := i.environment.getAt(distance-1, "this").(*GloxInstance)
+	method := superclass.findMethod(expr.method.lexeme)
+	if method == nil {
+		message := fmt.Sprintf("Undefined property '%s'.", expr.method.lexeme)
+		panic(interpreterError{gloxError(expr.method, message)})
+	}
+	return method.bind(object)
 }
 
 func (i *Interpreter) visitThis(expr *This) interface{} {
@@ -203,7 +211,19 @@ func (i *Interpreter) visitBlock(stmt *Block) interface{} {
 }
 
 func (i *Interpreter) visitClass(stmt *Class) interface{} {
+	var superclass *GloxClass
+	if stmt.superclass != nil {
+		var ok bool
+		superclassValue := i.evaluate(stmt.superclass)
+		if superclass, ok = superclassValue.(*GloxClass); !ok {
+			panic(interpreterError{gloxError(stmt.superclass.name, "A superclass must be a class.")})
+		}
+	}
 	i.environment.define(stmt.name.lexeme, nil)
+	if stmt.superclass != nil {
+		i.environment = NewEnvironment(i.environment)
+		i.environment.define("super", superclass)
+	}
 	methods := make(map[string]*GloxCallable)
 	for _, method := range stmt.methods {
 		function := &GloxCallable{
@@ -214,8 +234,12 @@ func (i *Interpreter) visitClass(stmt *Class) interface{} {
 		methods[method.name.lexeme] = function
 	}
 	class := &GloxClass{
-		name:    stmt.name.lexeme,
-		methods: methods,
+		name:       stmt.name.lexeme,
+		superclass: superclass,
+		methods:    methods,
+	}
+	if superclass != nil {
+		i.environment = i.environment.enclosing
 	}
 	i.environment.assign(stmt.name, class)
 	return nil

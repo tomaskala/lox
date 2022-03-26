@@ -67,6 +67,13 @@ func (p *Parser) varDeclaration() *Var {
 
 func (p *Parser) classDeclaration() *Class {
 	name := p.consume(IDENTIFIER, "Expect a class name.")
+	var superclass *Variable
+	if p.match(LESS) {
+		p.consume(IDENTIFIER, "Expect a superclass name.")
+		superclass = &Variable{
+			name: p.previous(),
+		}
+	}
 	p.consume(LEFT_BRACE, "Expect '{' before a class body.")
 	methods := make([]*Function, 0)
 	for !p.check(RIGHT_BRACE) && !p.atEnd() {
@@ -75,7 +82,7 @@ func (p *Parser) classDeclaration() *Class {
 	p.consume(RIGHT_BRACE, "Expect '}' after a class body.")
 	return &Class{
 		name:       name,
-		superclass: nil,
+		superclass: superclass,
 		methods:    methods,
 	}
 }
@@ -414,6 +421,14 @@ func (p *Parser) primary() Expr {
 		return &Literal{value: nil}
 	case p.match(NUMBER, STRING):
 		return &Literal{value: p.previous().literal}
+	case p.match(SUPER):
+		keyword := p.previous()
+		p.consume(DOT, "Expect a '.' after 'super'.")
+		method := p.consume(IDENTIFIER, "Expect a superclass method name.")
+		return &Super{
+			keyword: keyword,
+			method:  method,
+		}
 	case p.match(THIS):
 		return &This{keyword: p.previous()}
 	case p.match(IDENTIFIER):
