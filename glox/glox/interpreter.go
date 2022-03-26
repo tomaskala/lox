@@ -9,6 +9,8 @@ type returnSignal struct {
 	value interface{}
 }
 
+type breakSignal struct{}
+
 type Interpreter struct {
 	globals     *Environment
 	environment *Environment
@@ -210,6 +212,10 @@ func (i *Interpreter) visitBlock(stmt *Block) interface{} {
 	return nil
 }
 
+func (i *Interpreter) visitBreak(stmt *Break) interface{} {
+	panic(breakSignal{})
+}
+
 func (i *Interpreter) visitClass(stmt *Class) interface{} {
 	var superclass *GloxClass
 	if stmt.superclass != nil {
@@ -299,6 +305,13 @@ func (i *Interpreter) visitVar(stmt *Var) interface{} {
 }
 
 func (i *Interpreter) visitWhile(stmt *While) interface{} {
+	defer func() {
+		if r := recover(); r != nil {
+			if _, ok := r.(breakSignal); !ok {
+				panic(r)
+			}
+		}
+	}()
 	for isTruthy(i.evaluate(stmt.condition)) {
 		i.execute(stmt.body)
 	}

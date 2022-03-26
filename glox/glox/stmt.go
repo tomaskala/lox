@@ -2,6 +2,7 @@ package glox
 
 type StmtVisitor interface {
 	visitBlock(stmt *Block) interface{}
+	visitBreak(stmt *Break) interface{}
 	visitClass(stmt *Class) interface{}
 	visitExpression(stmt *Expression) interface{}
 	visitFunction(stmt *Function) interface{}
@@ -22,6 +23,14 @@ type Block struct {
 
 func (stmt *Block) accept(v StmtVisitor) interface{} {
 	return v.visitBlock(stmt)
+}
+
+type Break struct {
+	keyword Token
+}
+
+func (stmt *Break) accept(v StmtVisitor) interface{} {
+	return v.visitBreak(stmt)
 }
 
 type Class struct {

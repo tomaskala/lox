@@ -73,6 +73,10 @@ func (a *AstPrinter) visitBlock(stmt *Block) interface{} {
 	return builder.String()
 }
 
+func (a *AstPrinter) visitBreak(stmt *Break) interface{} {
+	return "(break)"
+}
+
 func (a *AstPrinter) visitClass(stmt *Class) interface{} {
 	builder := strings.Builder{}
 	builder.WriteString(fmt.Sprintf("(class %s", stmt.name.lexeme))

@@ -128,6 +128,8 @@ func (p *Parser) statement() Stmt {
 		return p.forStatement()
 	case p.match(RETURN):
 		return p.returnStatement()
+	case p.match(BREAK):
+		return p.breakStatement()
 	default:
 		return p.expressionStatement()
 	}
@@ -245,6 +247,14 @@ func (p *Parser) returnStatement() *Return {
 	return &Return{
 		keyword: keyword,
 		value:   value,
+	}
+}
+
+func (p *Parser) breakStatement() *Break {
+	keyword := p.previous()
+	p.consume(SEMICOLON, "Expect ';' after break.")
+	return &Break{
+		keyword: keyword,
 	}
 }
 

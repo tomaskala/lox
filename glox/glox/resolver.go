@@ -17,11 +17,19 @@ const (
 	IN_SUBCLASS
 )
 
+type LoopType = int
+
+const (
+	NO_LOOP LoopType = iota
+	IN_LOOP
+)
+
 type Resolver struct {
 	interpreter     *Interpreter
 	scopes          []map[string]bool
 	currentFunction FunctionType
 	currentClass    ClassType
+	currentLoop     LoopType
 }
 
 func NewResolver(interpreter *Interpreter) *Resolver {
@@ -30,6 +38,7 @@ func NewResolver(interpreter *Interpreter) *Resolver {
 		scopes:          nil,
 		currentFunction: NO_FUNCTION,
 		currentClass:    NO_CLASS,
+		currentLoop:     NO_LOOP,
 	}
 }
 
@@ -148,6 +157,13 @@ func (r *Resolver) visitBlock(stmt *Block) interface{} {
 	return nil
 }
 
+func (r *Resolver) visitBreak(stmt *Break) interface{} {
+	if r.currentLoop == NO_LOOP {
+		panic(resolverError{gloxError(stmt.keyword, "Cannot break from a top-level scope.")})
+	}
+	return nil
+}
+
 func (r *Resolver) visitClass(stmt *Class) interface{} {
 	enclosingClass := r.currentClass
 	r.currentClass = IN_CLASS
@@ -228,8 +244,11 @@ func (r *Resolver) visitVar(stmt *Var) interface{} {
 }
 
 func (r *Resolver) visitWhile(stmt *While) interface{} {
+	enclosingLoop := r.currentLoop
+	r.currentLoop = IN_LOOP
 	r.resolveExpression(stmt.condition)
 	r.resolveStatement(stmt.body)
+	r.currentLoop = enclosingLoop
 	return nil
 }
 
