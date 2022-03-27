@@ -5,8 +5,8 @@ CFLAGS  = -std=c99 -pedantic -Wall -Wextra -Werror -Wno-unused-parameter
 LDFLAGS =
 LDLIBS  =
 
-sources = src/main.c src/chunk.c src/memory.c src/debug.c
-headers = src/common.h src/chunk.h src/memory.h src/debug.h
+sources = src/main.c src/chunk.c src/memory.c src/debug.c src/value.c
+headers = src/common.h src/chunk.h src/memory.h src/debug.h src/value.h
 objects = $(sources:.c=.o)
 
 all: clox
