@@ -1,12 +1,12 @@
 .POSIX:
 .SUFFIXES:
 CC      = cc
-CFLAGS  = -std=c99 -pedantic -Wall -Wextra -Werror
+CFLAGS  = -std=c99 -pedantic -Wall -Wextra -Werror -Wno-unused-parameter
 LDFLAGS =
 LDLIBS  =
 
-sources = src/main.c
-headers =
+sources = src/main.c src/chunk.c src/memory.c src/debug.c
+headers = src/common.h src/chunk.h src/memory.h src/debug.h
 objects = $(sources:.c=.o)
 
 all: clox
