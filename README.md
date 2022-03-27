@@ -6,3 +6,6 @@ Robert Nystrom.
 
 The [glox](glox) directory contains a Go implementation based on **Part II. A
 Tree-Walk Interpreter**.
+
+The [clox](clox) directory contains a C implementation based on **Part III.
+A Bytecode Virtual Machine**.
