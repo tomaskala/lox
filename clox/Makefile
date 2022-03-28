@@ -10,13 +10,15 @@ sources = \
 	src/chunk.c \
 	src/memory.c \
 	src/debug.c \
-	src/value.c
+	src/value.c \
+	src/vm.c
 headers = \
 	src/common.h \
 	src/chunk.h \
 	src/memory.h \
 	src/debug.h \
-	src/value.h
+	src/value.h \
+	src/vm.h
 objects = $(sources:.c=.o)
 
 all: clox
