@@ -11,14 +11,18 @@ sources = \
 	src/memory.c \
 	src/debug.c \
 	src/value.c \
-	src/vm.c
+	src/vm.c \
+	src/compiler.c \
+	src/scanner.c
 headers = \
 	src/common.h \
 	src/chunk.h \
 	src/memory.h \
 	src/debug.h \
 	src/value.h \
-	src/vm.h
+	src/vm.h \
+	src/compiler.h \
+	src/scanner.h
 objects = $(sources:.c=.o)
 
 all: clox

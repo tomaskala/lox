@@ -23,7 +23,7 @@ void
 vm_init();
 
 InterpretResult
-vm_interpret(Chunk *chunk);
+vm_interpret(const char *source);
 
 void
 vm_stack_push(Value value);
