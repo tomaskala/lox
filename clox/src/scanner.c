@@ -21,6 +21,12 @@ scanner_init(const char *source)
 }
 
 static bool
+is_digit(char c)
+{
+  return '0' <= c && c <= '9';
+}
+
+static bool
 is_at_end()
 {
   return *scanner.current == '\0';
@@ -31,7 +37,7 @@ advance()
 {
   scanner.current++;
   return scanner.current[-1];
-};
+}
 
 static char
 peek()
@@ -109,6 +115,33 @@ skip_whitespace()
   }
 }
 
+static Token
+string()
+{
+  while (peek() != '"' && !is_at_end()) {
+    if (peek() == '\n')
+      scanner.line++;
+    advance();
+  }
+  if (is_at_end())
+    return error_token("Unterminated string.");
+  advance();
+  return make_token(TOKEN_STRING);
+}
+
+static Token
+number()
+{
+  while (is_digit(peek()))
+    advance();
+  if (peek() == '.' && is_digit(peek_next())) {
+    advance();
+    while (is_digit(peek()))
+      advance();
+  }
+  return make_token(TOKEN_NUMBER);
+}
+
 Token
 scanner_scan_token()
 {
@@ -117,6 +150,8 @@ scanner_scan_token()
   if (is_at_end())
     return make_token(TOKEN_EOF);
   char c = advance();
+  if (is_digit(c))
+    return number();
   switch (c) {
   case '(': return make_token(TOKEN_LEFT_PAREN);
   case ')': return make_token(TOKEN_RIGHT_PAREN);
@@ -133,6 +168,7 @@ scanner_scan_token()
   case '=': return make_token(match('=') ? TOKEN_EQUAL_EQUAL : TOKEN_EQUAL);
   case '<': return make_token(match('=') ? TOKEN_LESS_EQUAL : TOKEN_LESS);
   case '>': return make_token(match('=') ? TOKEN_GREATER_EQUAL : TOKEN_GREATER);
+  case '"': return string();
   }
   return error_token("Unexpected character.");
 }
