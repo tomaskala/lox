@@ -39,6 +39,15 @@ peek()
   return *scanner.current;
 }
 
+static char
+peek_next()
+{
+  if (is_at_end())
+    return '\0';
+  else
+    return scanner.current[1];
+}
+
 static bool
 match(char expected)
 {
@@ -86,6 +95,13 @@ skip_whitespace()
     case '\n':
       scanner.line++;
       advance();
+      break;
+    case '/':
+      if (peek_next() == '/')
+        while (peek() != '\n' && !is_at_end())
+          advance();
+      else
+        return;
       break;
     default:
       return;
