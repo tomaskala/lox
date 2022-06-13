@@ -20,7 +20,7 @@ vm_init()
 }
 
 static InterpretResult
-vm_run()
+run()
 {
   #define READ_BYTE() (*vm.ip++)
   #define READ_CONSTANT() (vm.chunk->constants.values[READ_BYTE()])
@@ -78,8 +78,17 @@ vm_run()
 InterpretResult
 vm_interpret(const char *source)
 {
-  compile(source);
-  return INTERPRET_OK;
+  Chunk chunk;
+  chunk_init(&chunk);
+  if (!compile(source, &chunk)) {
+    chunk_free(&chunk);
+    return INTERPRET_COMPILE_ERROR;
+  }
+  vm.chunk = &chunk;
+  vm.ip = vm.chunk->code;
+  InterpretResult result = run();
+  chunk_free(&chunk);
+  return result;
 }
 
 void
