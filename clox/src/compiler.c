@@ -5,6 +5,10 @@
 #include "compiler.h"
 #include "scanner.h"
 
+#ifdef DEBUG_PRINT_CODE
+#include "debug.h"
+#endif
+
 typedef struct {
   Token previous;
   Token current;
@@ -131,6 +135,10 @@ static void
 end_compiler()
 {
   emit_return();
+  #ifdef DEBUG_PRINT_CODE
+  if (!parser.had_error)
+    disassemble_chunk(current_chunk(), "code");
+  #endif
 }
 
 static void
