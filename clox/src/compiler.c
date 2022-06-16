@@ -12,6 +12,20 @@ typedef struct {
   bool panic_mode;
 } Parser;
 
+typedef enum {
+  PREC_NONE,
+  PREC_ASSIGNMENT,  // =
+  PREC_OR,          // or
+  PREC_AND,         // and
+  PREC_EQUALITY,    // == !=
+  PREC_COMPARISON,  // < > <= >=
+  PREC_TERM,        // + -
+  PREC_FACTOR,      // * /
+  PREC_UNARY,       // ! -
+  PREC_CALL,        // . ()
+  PREC_PRIMARY
+} Precedence;
+
 Parser parser;
 Chunk *compiling_chunk;
 
@@ -88,10 +102,64 @@ emit_return()
   emit_byte(OP_RETURN);
 }
 
+static uint8_t
+make_constant(Value value)
+{
+  size_t constant = chunk_add_constant(current_chunk(), value);
+  if (constant > UINT8_MAX) {
+    error("Too many constants in one chunk.");
+    return 0;
+  }
+  return (uint8_t) constant;
+}
+
+static void
+emit_constant(Value value)
+{
+  emit_bytes(OP_CONSTANT, make_constant(value));
+}
+
 static void
 end_compiler()
 {
   emit_return();
+}
+
+static void
+grouping()
+{
+  expression();
+  consume(TOKEN_RIGHT_PAREN, "Expect ')' after expression.");
+}
+
+static void
+number()
+{
+  double value = strtod(parser.previous.start, NULL);
+  emit_constant(value);
+}
+
+static void
+unary()
+{
+  TokenType operator_type = parser.previous.type;
+  parse_precedence(PREC_UNARY);
+  switch (operator_type) {
+  case TOKEN_MINUS:
+    emit_byte(OP_NEGATE);
+    break;
+  }
+}
+
+static void
+parse_precedence(Precedence precedence)
+{
+}
+
+static void
+expression()
+{
+  parse_precedence(PREC_ASSIGNMENT);
 }
 
 bool
