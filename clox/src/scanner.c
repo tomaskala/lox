@@ -124,7 +124,7 @@ skip_whitespace()
 static TokenType
 check_keyword(size_t start, size_t length, const char *rest, TokenType type)
 {
-  if (scanner.current - scanner.start == start + length
+  if ((size_t) (scanner.current - scanner.start) == start + length
       && memcmp(scanner.start + start, rest, length) == 0)
     return type;
   return TOKEN_IDENTIFIER;
