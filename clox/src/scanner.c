@@ -121,41 +121,6 @@ skip_whitespace()
   }
 }
 
-static Token
-string()
-{
-  while (peek() != '"' && !is_at_end()) {
-    if (peek() == '\n')
-      scanner.line++;
-    advance();
-  }
-  if (is_at_end())
-    return error_token("Unterminated string.");
-  advance();
-  return make_token(TOKEN_STRING);
-}
-
-static Token
-identifier()
-{
-  while (is_alpha(peek()) || is_digit(peek()))
-    advance();
-  return make_token(identifier_type());
-}
-
-static Token
-number()
-{
-  while (is_digit(peek()))
-    advance();
-  if (peek() == '.' && is_digit(peek_next())) {
-    advance();
-    while (is_digit(peek()))
-      advance();
-  }
-  return make_token(TOKEN_NUMBER);
-}
-
 static TokenType
 check_keyword(size_t start, size_t length, const char *rest, TokenType type)
 {
@@ -199,6 +164,41 @@ identifier_type()
   case 'w': return check_keyword(1, 4, "hile", TOKEN_WHILE);
   }
   return TOKEN_IDENTIFIER;
+}
+
+static Token
+identifier()
+{
+  while (is_alpha(peek()) || is_digit(peek()))
+    advance();
+  return make_token(identifier_type());
+}
+
+static Token
+number()
+{
+  while (is_digit(peek()))
+    advance();
+  if (peek() == '.' && is_digit(peek_next())) {
+    advance();
+    while (is_digit(peek()))
+      advance();
+  }
+  return make_token(TOKEN_NUMBER);
+}
+
+static Token
+string()
+{
+  while (peek() != '"' && !is_at_end()) {
+    if (peek() == '\n')
+      scanner.line++;
+    advance();
+  }
+  if (is_at_end())
+    return error_token("Unterminated string.");
+  advance();
+  return make_token(TOKEN_STRING);
 }
 
 Token
