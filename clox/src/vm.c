@@ -96,6 +96,15 @@ run()
         vm_stack_push(constant);
         break;
       }
+    case OP_NIL:
+      vm_stack_push(NIL_VAL);
+      break;
+    case OP_TRUE:
+      vm_stack_push(BOOL_VAL(true));
+      break;
+    case OP_FALSE:
+      vm_stack_push(BOOL_VAL(false));
+      break;
     case OP_ADD:
       BINARY_OP(NUMBER_VAL, +);
       break;
