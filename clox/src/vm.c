@@ -1,3 +1,4 @@
+#include <stdarg.h>
 #include <stdio.h>
 
 #include "common.h"
@@ -11,15 +12,54 @@
 VM vm;
 
 static void
-stack_reset()
+vm_stack_reset()
 {
   vm.stack_top = vm.stack;
+}
+
+static void
+runtime_error(const char *format, ...)
+{
+  va_list args;
+  va_start(args, format);
+  vfprintf(stderr, format, args);
+  va_end(args);
+  fputs("\n", stderr);
+  size_t instruction = vm.ip - vm.chunk->code - 1;
+  int line = vm.chunk->lines[instruction];
+  fprintf(stderr, "[line %d] in script\n", line);
+  vm_stack_reset();
 }
 
 void
 vm_init()
 {
-  stack_reset();
+  vm_stack_reset();
+}
+
+void
+vm_free()
+{
+}
+
+void
+vm_stack_push(Value value)
+{
+  *vm.stack_top = value;
+  vm.stack_top++;
+}
+
+Value
+vm_stack_pop()
+{
+  vm.stack_top--;
+  return *vm.stack_top;
+}
+
+static Value
+vm_stack_peek(size_t distance)
+{
+  return vm.stack_top[-1 - distance];
 }
 
 static InterpretResult
@@ -27,11 +67,15 @@ run()
 {
   #define READ_BYTE() (*vm.ip++)
   #define READ_CONSTANT() (vm.chunk->constants.values[READ_BYTE()])
-  #define BINARY_OP(op) \
+  #define BINARY_OP(value_type, op) \
   do { \
-    double b = vm_stack_pop(); \
-    double a = vm_stack_pop(); \
-    vm_stack_push(a op b); \
+    if (!IS_NUMBER(vm_stack_peek(0)) || !IS_NUMBER(vm_stack_peek(1))) { \
+      runtime_error("Operands must be numbers."); \
+      return INTERPRET_RUNTIME_ERROR; \
+    } \
+    double b = AS_NUMBER(vm_stack_pop()); \
+    double a = AS_NUMBER(vm_stack_pop()); \
+    vm_stack_push(value_type(a op b)); \
   } while (false)
   for (;;) {
     #ifdef DEBUG_TRACE_EXECUTION
@@ -53,19 +97,23 @@ run()
         break;
       }
     case OP_ADD:
-      BINARY_OP(+);
+      BINARY_OP(NUMBER_VAL, +);
       break;
     case OP_SUBTRACT:
-      BINARY_OP(-);
+      BINARY_OP(NUMBER_VAL, -);
       break;
     case OP_MULTIPLY:
-      BINARY_OP(*);
+      BINARY_OP(NUMBER_VAL, *);
       break;
     case OP_DIVIDE:
-      BINARY_OP(/);
+      BINARY_OP(NUMBER_VAL, /);
       break;
     case OP_NEGATE:
-      vm_stack_push(-vm_stack_pop());
+      if (!IS_NUMBER(vm_stack_peek(0))) {
+        runtime_error("Operand must be a number.");
+        return INTERPRET_RUNTIME_ERROR;
+      }
+      vm_stack_push(NUMBER_VAL(-AS_NUMBER(vm_stack_pop())));
       break;
     case OP_RETURN:
       value_print(vm_stack_pop());
@@ -92,23 +140,4 @@ vm_interpret(const char *source)
   InterpretResult result = run();
   chunk_free(&chunk);
   return result;
-}
-
-void
-vm_stack_push(Value value)
-{
-  *vm.stack_top = value;
-  vm.stack_top++;
-}
-
-Value
-vm_stack_pop()
-{
-  vm.stack_top--;
-  return *vm.stack_top;
-}
-
-void
-vm_free()
-{
 }
