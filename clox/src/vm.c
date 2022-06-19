@@ -62,6 +62,11 @@ vm_stack_peek(size_t distance)
   return vm.stack_top[-1 - distance];
 }
 
+static bool
+is_falsey(Value value) {
+  return IS_NIL(value) || (IS_BOOL(value) && !AS_BOOL(value));
+}
+
 static InterpretResult
 run()
 {
@@ -105,6 +110,19 @@ run()
     case OP_FALSE:
       vm_stack_push(BOOL_VAL(false));
       break;
+    case OP_EQUAL:
+      {
+        Value b = vm_stack_pop();
+        Value a = vm_stack_pop();
+        vm_stack_push(BOOL_VAL(values_equal(a, b)));
+        break;
+      }
+    case OP_GREATER:
+      BINARY_OP(BOOL_VAL, >);
+      break;
+    case OP_LESS:
+      BINARY_OP(BOOL_VAL, <);
+      break;
     case OP_ADD:
       BINARY_OP(NUMBER_VAL, +);
       break;
@@ -116,6 +134,9 @@ run()
       break;
     case OP_DIVIDE:
       BINARY_OP(NUMBER_VAL, /);
+      break;
+    case OP_NOT:
+      vm_stack_push(BOOL_VAL(is_falsey(vm_stack_pop())));
       break;
     case OP_NEGATE:
       if (!IS_NUMBER(vm_stack_peek(0))) {

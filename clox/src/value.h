@@ -37,6 +37,8 @@ typedef struct {
 void
 value_array_init(ValueArray *array);
 
+bool values_equal(Value a, Value b);
+
 void
 value_array_write(ValueArray *array, Value value);
 
