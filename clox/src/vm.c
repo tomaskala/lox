@@ -38,11 +38,13 @@ void
 vm_init()
 {
   vm_stack_reset();
+  vm.objects = NULL;
 }
 
 void
 vm_free()
 {
+  free_objects();
 }
 
 void
