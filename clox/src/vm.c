@@ -1,8 +1,11 @@
 #include <stdarg.h>
 #include <stdio.h>
+#include <string.h>
 
 #include "common.h"
 #include "compiler.h"
+#include "memory.h"
+#include "object.h"
 #include "vm.h"
 
 #ifdef DEBUG_TRACE_EXECUTION
@@ -67,6 +70,20 @@ is_falsey(Value value) {
   return IS_NIL(value) || (IS_BOOL(value) && !AS_BOOL(value));
 }
 
+static void
+concatenate()
+{
+  ObjString *b = AS_STRING(vm_stack_pop());
+  ObjString *a = AS_STRING(vm_stack_pop());
+  size_t length = a->length + b->length;
+  char *chars = ALLOCATE(char, length + 1);
+  memcpy(chars, a->chars, a->length);
+  memcpy(chars + a->length, b->chars, b->length);
+  chars[length] = '\0';
+  ObjString *result = take_string(chars, length);
+  vm_stack_push(OBJ_VAL(result));
+}
+
 static InterpretResult
 run()
 {
@@ -95,12 +112,11 @@ run()
     #endif
     uint8_t instruction;
     switch (instruction = READ_BYTE()) {
-    case OP_CONSTANT:
-      {
-        Value constant = READ_CONSTANT();
-        vm_stack_push(constant);
-        break;
-      }
+    case OP_CONSTANT: {
+      Value constant = READ_CONSTANT();
+      vm_stack_push(constant);
+      break;
+    }
     case OP_NIL:
       vm_stack_push(NIL_VAL);
       break;
@@ -110,22 +126,31 @@ run()
     case OP_FALSE:
       vm_stack_push(BOOL_VAL(false));
       break;
-    case OP_EQUAL:
-      {
-        Value b = vm_stack_pop();
-        Value a = vm_stack_pop();
-        vm_stack_push(BOOL_VAL(values_equal(a, b)));
-        break;
-      }
+    case OP_EQUAL: {
+      Value b = vm_stack_pop();
+      Value a = vm_stack_pop();
+      vm_stack_push(BOOL_VAL(values_equal(a, b)));
+      break;
+    }
     case OP_GREATER:
       BINARY_OP(BOOL_VAL, >);
       break;
     case OP_LESS:
       BINARY_OP(BOOL_VAL, <);
       break;
-    case OP_ADD:
-      BINARY_OP(NUMBER_VAL, +);
+    case OP_ADD: {
+      if (IS_STRING(vm_stack_peek(0)) && IS_STRING(vm_stack_peek(1))) {
+        concatenate();
+      } else if (IS_NUMBER(vm_stack_peek(0)) && IS_NUMBER(vm_stack_peek(1))) {
+        double b = AS_NUMBER(vm_stack_pop());
+        double a = AS_NUMBER(vm_stack_pop());
+        vm_stack_push(NUMBER_VAL(a + b));
+      } else {
+        runtime_error("Operands must be two numbers or two strings.");
+        return INTERPRET_RUNTIME_ERROR;
+      }
       break;
+    }
     case OP_SUBTRACT:
       BINARY_OP(NUMBER_VAL, -);
       break;

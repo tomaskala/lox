@@ -27,10 +27,26 @@ allocate_string(char *chars, size_t length)
 }
 
 ObjString *
+take_string(char *chars, size_t length)
+{
+  return allocate_string(chars, length);
+}
+
+ObjString *
 copy_string(const char *chars, size_t length)
 {
   char *heap_chars = ALLOCATE(char, length + 1);
   memcpy(heap_chars, chars, length);
   heap_chars[length] = '\0';
   return allocate_string(heap_chars, length);
+}
+
+void
+object_print(Value value)
+{
+  switch (OBJ_TYPE(value)) {
+  case OBJ_STRING:
+    printf("%s", AS_CSTRING(value));
+    break;
+  }
 }

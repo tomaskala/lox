@@ -230,7 +230,7 @@ static void
 string()
 {
   emit_constant(OBJ_VAL(copy_string(parser.previous.start + 1,
-                                    parser.previous_length - 2));
+                                    parser.previous.length - 2)));
 }
 
 static void

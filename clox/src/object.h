@@ -25,7 +25,13 @@ struct ObjString {
 };
 
 ObjString *
+take_string(char *chars, size_t length);
+
+ObjString *
 copy_string(const char *chars, size_t length);
+
+void
+object_print(Value value);
 
 static inline bool
 is_obj_type(Value value, ObjType type)
