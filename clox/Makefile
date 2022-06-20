@@ -14,7 +14,8 @@ sources = \
 	src/vm.c \
 	src/compiler.c \
 	src/scanner.c \
-	src/object.c
+	src/object.c \
+	src/table.c
 headers = \
 	src/common.h \
 	src/chunk.h \
@@ -24,7 +25,8 @@ headers = \
 	src/vm.h \
 	src/compiler.h \
 	src/scanner.h \
-	src/object.h
+	src/object.h \
+	src.table.h
 objects = $(sources:.c=.o)
 
 all: clox
