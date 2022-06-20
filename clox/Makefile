@@ -22,7 +22,8 @@ headers = \
 	src/value.h \
 	src/vm.h \
 	src/compiler.h \
-	src/scanner.h
+	src/scanner.h \
+	src/object.h
 objects = $(sources:.c=.o)
 
 all: clox
