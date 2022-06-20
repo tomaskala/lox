@@ -39,12 +39,14 @@ vm_init()
 {
   vm_stack_reset();
   vm.objects = NULL;
+  table_init(&vm.strings);
 }
 
 void
 vm_free()
 {
   free_objects();
+  table_free(&vm.strings);
 }
 
 void
