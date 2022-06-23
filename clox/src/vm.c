@@ -174,9 +174,11 @@ run()
       }
       vm_stack_push(NUMBER_VAL(-AS_NUMBER(vm_stack_pop())));
       break;
-    case OP_RETURN:
+    case OP_PRINT:
       value_print(vm_stack_pop());
       printf("\n");
+      break;
+    case OP_RETURN:
       return INTERPRET_OK;
     }
   }
