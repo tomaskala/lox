@@ -274,6 +274,19 @@ string()
 }
 
 static void
+named_variable(Token name)
+{
+  uint8_t arg = identifier_constant(&name);
+  emit_bytes(OP_GET_GLOBAL, arg);
+}
+
+static void
+variable()
+{
+  named_variable(parser.previous);
+}
+
+static void
 unary()
 {
   TokenType operator_type = parser.previous.type;
@@ -312,7 +325,7 @@ ParseRule rules[] = {
   [TOKEN_GREATER_EQUAL] = {NULL,     binary, PREC_COMPARISON},
   [TOKEN_LESS]          = {NULL,     binary, PREC_COMPARISON},
   [TOKEN_LESS_EQUAL]    = {NULL,     binary, PREC_COMPARISON},
-  [TOKEN_IDENTIFIER]    = {NULL,     NULL,   PREC_NONE},
+  [TOKEN_IDENTIFIER]    = {variable, NULL,   PREC_NONE},
   [TOKEN_STRING]        = {string,   NULL,   PREC_NONE},
   [TOKEN_NUMBER]        = {number,   NULL,   PREC_NONE},
   [TOKEN_AND]           = {NULL,     NULL,   PREC_NONE},
