@@ -152,6 +152,15 @@ run()
       vm_stack_pop();
       break;
     }
+    case OP_SET_GLOBAL: {
+      ObjString *name = READ_STRING();
+      if (table_set(&vm.globals, name, vm_stack_peek(0))) {
+        table_delete(&vm.globals, name);
+        runtime_error("Undefined variable '%s'.", name->chars);
+        return INTERPRET_RUNTIME_ERROR;
+      }
+      break;
+    }
     case OP_EQUAL: {
       Value b = vm_stack_pop();
       Value a = vm_stack_pop();
