@@ -47,7 +47,7 @@ take_string(char *chars, size_t length)
 {
   uint32_t hash = hash_string(chars, length);
   ObjString *interned = table_find_string(&vm.strings, chars, length, hash);
-  if (interned!= NULL) {
+  if (interned != NULL) {
     FREE_ARRAY(char, chars, length + 1);
     return interned;
   }

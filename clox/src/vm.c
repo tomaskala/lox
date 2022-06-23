@@ -39,6 +39,7 @@ vm_init()
 {
   vm_stack_reset();
   vm.objects = NULL;
+  table_init(&vm.globals);
   table_init(&vm.strings);
 }
 
@@ -46,6 +47,7 @@ void
 vm_free()
 {
   free_objects();
+  table_free(&vm.globals);
   table_free(&vm.strings);
 }
 
@@ -93,6 +95,7 @@ run()
 {
   #define READ_BYTE() (*vm.ip++)
   #define READ_CONSTANT() (vm.chunk->constants.values[READ_BYTE()])
+  #define READ_STRING() AS_STRING(READ_CONSTANT())
   #define BINARY_OP(value_type, op) \
   do { \
     if (!IS_NUMBER(vm_stack_peek(0)) || !IS_NUMBER(vm_stack_peek(1))) { \
@@ -133,6 +136,12 @@ run()
     case OP_POP:
       vm_stack_pop();
       break;
+    case OP_DEFINE_GLOBAL: {
+      ObjString *name = READ_STRING();
+      table_set(&vm.globals, name, vm_stack_peek(0));
+      vm_stack_pop();
+      break;
+    }
     case OP_EQUAL: {
       Value b = vm_stack_pop();
       Value a = vm_stack_pop();
@@ -187,6 +196,7 @@ run()
   }
   #undef READ_BYTE
   #undef READ_CONSTANT
+  #undef READ_STRING
   #undef BINARY_OP
 }
 
