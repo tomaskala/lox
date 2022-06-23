@@ -130,6 +130,9 @@ run()
     case OP_FALSE:
       vm_stack_push(BOOL_VAL(false));
       break;
+    case OP_POP:
+      vm_stack_pop();
+      break;
     case OP_EQUAL: {
       Value b = vm_stack_pop();
       Value a = vm_stack_pop();
