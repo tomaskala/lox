@@ -549,8 +549,14 @@ if_statement()
   expression();
   consume(TOKEN_RIGHT_PAREN, "Expect ')' after condition.");
   size_t then_jump = emit_jump(OP_JUMP_IF_FALSE);
+  emit_byte(OP_POP);
   statement();
+  size_t else_jump = emit_jump(OP_JUMP);
   patch_jump(then_jump);
+  emit_byte(OP_POP);
+  if (match(TOKEN_ELSE))
+    statement();
+  patch_jump(else_jump);
 }
 
 static void
