@@ -312,6 +312,15 @@ define_variable(uint8_t global)
 }
 
 static void
+and_(bool can_assign)
+{
+  size_t end_jump = emit_jump(OP_JUMP_IF_FALSE);
+  emit_byte(OP_POP);
+  parse_precedence(PREC_AND);
+  patch_jump(end_jump);
+}
+
+static void
 binary(bool can_assign)
 {
   TokenType operator_type = parser.previous.type;
@@ -385,6 +394,17 @@ number(bool can_assign)
 {
   double value = strtod(parser.previous.start, NULL);
   emit_constant(NUMBER_VAL(value));
+}
+
+static void
+or_(bool can_assign)
+{
+  size_t else_jump = emit_jump(OP_JUMP_IF_FALSE);
+  size_t end_jump = emit_jump(OP_JUMP);
+  patch_jump(else_jump);
+  emit_byte(OP_POP);
+  parse_precedence(PREC_OR);
+  patch_jump(end_jump);
 }
 
 static void
@@ -462,7 +482,7 @@ ParseRule rules[] = {
   [TOKEN_IDENTIFIER]    = {variable, NULL,   PREC_NONE},
   [TOKEN_STRING]        = {string,   NULL,   PREC_NONE},
   [TOKEN_NUMBER]        = {number,   NULL,   PREC_NONE},
-  [TOKEN_AND]           = {NULL,     NULL,   PREC_NONE},
+  [TOKEN_AND]           = {NULL,     and_,   PREC_AND},
   [TOKEN_CLASS]         = {NULL,     NULL,   PREC_NONE},
   [TOKEN_ELSE]          = {NULL,     NULL,   PREC_NONE},
   [TOKEN_FALSE]         = {literal,  NULL,   PREC_NONE},
@@ -470,7 +490,7 @@ ParseRule rules[] = {
   [TOKEN_FUN]           = {NULL,     NULL,   PREC_NONE},
   [TOKEN_IF]            = {NULL,     NULL,   PREC_NONE},
   [TOKEN_NIL]           = {literal,  NULL,   PREC_NONE},
-  [TOKEN_OR]            = {NULL,     NULL,   PREC_NONE},
+  [TOKEN_OR]            = {NULL,     or_,    PREC_OR},
   [TOKEN_PRINT]         = {NULL,     NULL,   PREC_NONE},
   [TOKEN_RETURN]        = {NULL,     NULL,   PREC_NONE},
   [TOKEN_SUPER]         = {NULL,     NULL,   PREC_NONE},
