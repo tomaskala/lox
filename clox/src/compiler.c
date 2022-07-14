@@ -136,6 +136,15 @@ emit_bytes(uint8_t byte1, uint8_t byte2)
   emit_byte(byte2);
 }
 
+static size_t
+emit_jump(uint8_t instruction)
+{
+  emit_byte(instruction);
+  emit_byte(0xff);
+  emit_byte(0xff);
+  return current_chunk()->count - 2;
+}
+
 static void
 emit_return()
 {
@@ -157,6 +166,16 @@ static void
 emit_constant(Value value)
 {
   emit_bytes(OP_CONSTANT, make_constant(value));
+}
+
+static void
+patch_jump(size_t offset)
+{
+  size_t jump = current_chunk()->count - offset - 2;
+  if (jump > UINT16_MAX)
+    error("Too much code to jump over");
+  current_chunk()->code[offset] = (jump >> 8) & 0xff;
+  current_chunk()->code[offset + 1] = jump & 0xff;
 }
 
 static void
@@ -524,6 +543,17 @@ expression_statement()
 }
 
 static void
+if_statement()
+{
+  consume(TOKEN_LEFT_PAREN, "Expect '(' after 'if'.");
+  expression();
+  consume(TOKEN_RIGHT_PAREN, "Expect ')' after condition.");
+  size_t then_jump = emit_jump(OP_JUMP_IF_FALSE);
+  statement();
+  patch_jump(then_jump);
+}
+
+static void
 print_statement()
 {
   expression();
@@ -571,6 +601,8 @@ statement()
 {
   if (match(TOKEN_PRINT))
     print_statement();
+  else if (match(TOKEN_IF))
+    if_statement();
   else if (match(TOKEN_LEFT_BRACE)) {
     scope_begin();
     block();
