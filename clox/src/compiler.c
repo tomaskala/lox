@@ -717,6 +717,20 @@ print_statement()
 }
 
 static void
+return_statement()
+{
+  if (current->type == TYPE_SCRIPT)
+    error("Can't return from top-level code.");
+  if (match(TOKEN_SEMICOLON))
+    emit_return();
+  else {
+    expression();
+    consume(TOKEN_SEMICOLON, "Expect ';' after return value.");
+    emit_byte(OP_RETURN);
+  }
+}
+
+static void
 while_statement()
 {
   size_t loop_start = current_chunk()->count;
@@ -777,6 +791,8 @@ statement()
     for_statement();
   else if (match(TOKEN_IF))
     if_statement();
+  else if (match(TOKEN_RETURN))
+    return_statement();
   else if (match(TOKEN_WHILE))
     while_statement();
   else if (match(TOKEN_LEFT_BRACE)) {
