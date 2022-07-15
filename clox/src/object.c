@@ -52,6 +52,14 @@ new_function()
   return function;
 }
 
+ObjNative *
+new_native(NativeFn function)
+{
+  ObjNative *native = ALLOCATE_OBJ(ObjNative, OBJ_NATIVE);
+  native->function = function;
+  return native;
+}
+
 ObjString *
 take_string(char *chars, size_t length)
 {
@@ -92,6 +100,9 @@ object_print(Value value)
   switch (OBJ_TYPE(value)) {
   case OBJ_FUNCTION:
     print_function(AS_FUNCTION(value));
+    break;
+  case OBJ_NATIVE:
+    printf("<native fn>");
     break;
   case OBJ_STRING:
     printf("%s", AS_CSTRING(value));
