@@ -1,4 +1,3 @@
-#include <inttypes.h>
 #include <stdio.h>
 
 #include "debug.h"
@@ -16,7 +15,7 @@ static size_t
 constant_instruction(const char *name, Chunk *chunk, size_t offset)
 {
   uint8_t constant = chunk->code[offset + 1];
-  printf("%-16s %4" PRIu8 " '", name, constant);
+  printf("%-16s %4u '", name, constant);
   value_print(chunk->constants.values[constant]);
   printf("'\n");
   return offset + 2;
@@ -102,10 +101,12 @@ disassemble_instruction(Chunk *chunk, size_t offset)
     return jump_instruction("OP_JUMP_IF_FALSE", 1, chunk, offset);
   case OP_LOOP:
     return jump_instruction("OP_LOOP", -1, chunk, offset);
+  case OP_CALL:
+    return byte_instruction("OP_CALL", chunk, offset);
   case OP_RETURN:
     return simple_instruction("OP_RETURN", offset);
   default:
-    printf("Unknown opcode %" PRIu8 "\n", instruction);
+    printf("Unknown opcode %u\n", instruction);
     return offset + 1;
   }
 }
