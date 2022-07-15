@@ -20,6 +20,12 @@ static void
 free_object(Obj *object)
 {
   switch (object->type) {
+  case OBJ_FUNCTION: {
+    ObjFunction *function = (ObjFunction *) object;
+    chunk_free(&function->chunk);
+    FREE(ObjFunction, object);
+    break;
+  }
   case OBJ_STRING: {
     ObjString *string = (ObjString *) object;
     FREE_ARRAY(char, string->chars, string->length + 1);
