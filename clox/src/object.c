@@ -80,7 +80,10 @@ copy_string(const char *chars, size_t length)
 static void
 print_function(ObjFunction *function)
 {
-  printf("<fn %s>", function->name->chars);
+  if (function->name == NULL)
+    printf("<script>");
+  else
+    printf("<fn %s>", function->name->chars);
 }
 
 void
