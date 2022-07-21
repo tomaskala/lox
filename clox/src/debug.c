@@ -1,6 +1,7 @@
 #include <stdio.h>
 
 #include "debug.h"
+#include "object.h"
 #include "value.h"
 
 void
@@ -75,6 +76,10 @@ disassemble_instruction(Chunk *chunk, size_t offset)
     return constant_instruction("OP_DEFINE_GLOBAL", chunk, offset);
   case OP_SET_GLOBAL:
     return constant_instruction("OP_SET_GLOBAL", chunk, offset);
+  case OP_GET_UPVALUE:
+    return byte_instruction("OP_GET_UPVALUE", chunk, offset);
+  case OP_SET_UPVALUE:
+    return byte_instruction("OP_SET_UPVALUE", chunk, offset);
   case OP_EQUAL:
     return simple_instruction("OP_EQUAL", offset);
   case OP_GREATER:
@@ -109,6 +114,12 @@ disassemble_instruction(Chunk *chunk, size_t offset)
     printf("%-16s %4d ", "OP_CLOSURE", constant);
     value_print(chunk->constants.values[constant]);
     printf("\n");
+    ObjFunction *function = AS_FUNCTION(chunk->constants.values[constant]);
+    for (size_t i = 0; i < function->upvalue_count; ++i) {
+      uint8_t is_local = chunk->code[offset++];
+      uint8_t index = chunk->code[offset++];
+      printf("%04zu | %s %d\n", offset - 2, is_local ? "local" : "upvalue", index);
+    }
     return offset;
   }
   case OP_RETURN:

@@ -44,6 +44,11 @@ typedef struct {
   int depth;
 } Local;
 
+typedef struct {
+  uint8_t index;
+  bool is_local;
+} Upvalue;
+
 typedef enum {
   TYPE_FUNCTION,
   TYPE_SCRIPT,
@@ -55,6 +60,7 @@ typedef struct Compiler {
   FunctionType type;
   Local locals[UINT8_COUNT];
   int local_count;
+  Upvalue upvalues[UINT8_COUNT];
   int scope_depth;
 } Compiler;
 
@@ -291,6 +297,38 @@ resolve_local(Compiler *compiler, Token *name)
   return -1;
 }
 
+static int
+add_upvalue(Compiler *compiler, uint8_t index, bool is_local)
+{
+  size_t upvalue_count = compiler->function->upvalue_count;
+  for (size_t i = 0; i < upvalue_count; ++i) {
+    Upvalue *upvalue = &compiler->upvalues[i];
+    if (upvalue->index == index && upvalue->is_local == is_local)
+      return i;
+  }
+  if (upvalue_count == UINT8_COUNT) {
+    error("Too many closure variables in function.");
+    return 0;
+  }
+  compiler->upvalues[upvalue_count].is_local = is_local;
+  compiler->upvalues[upvalue_count].index = index;
+  return compiler->function->upvalue_count++;
+}
+
+static int
+resolve_upvalue(Compiler *compiler, Token *name)
+{
+  if (compiler->enclosing == NULL)
+    return -1;
+  int local = resolve_local(compiler->enclosing, name);
+  if (local != -1)
+    return add_upvalue(compiler, (uint8_t) local, true);
+  int upvalue = resolve_upvalue(compiler->enclosing, name);
+  if (upvalue != -1)
+    return add_upvalue(compiler, (uint8_t) upvalue, false);
+  return -1;
+}
+
 static void
 add_local(Token name)
 {
@@ -481,6 +519,9 @@ named_variable(Token name, bool can_assign)
   if (arg != -1) {
     get_op = OP_GET_LOCAL;
     set_op = OP_SET_LOCAL;
+  } else if ((arg = resolve_upvalue(current, &name)) != -1) {
+    get_op = OP_GET_UPVALUE;
+    set_op = OP_SET_UPVALUE;
   } else {
     arg = identifier_constant(&name);
     get_op = OP_GET_GLOBAL;
@@ -622,6 +663,10 @@ function(FunctionType type)
   block();
   ObjFunction *function = compiler_end();
   emit_bytes(OP_CLOSURE, make_constant(OBJ_VAL(function)));
+  for (size_t i = 0; i < function->upvalue_count; ++i) {
+    emit_byte(compiler.upvalues[i].is_local ? 1 : 0);
+    emit_byte(compiler.upvalues[i].index);
+  }
 }
 
 static void
