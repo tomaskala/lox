@@ -621,7 +621,7 @@ function(FunctionType type)
   consume(TOKEN_LEFT_BRACE, "Expect '{' before function body.");
   block();
   ObjFunction *function = compiler_end();
-  emit_bytes(OP_CONSTANT, make_constant(OBJ_VAL(function)));
+  emit_bytes(OP_CLOSURE, make_constant(OBJ_VAL(function)));
 }
 
 static void
