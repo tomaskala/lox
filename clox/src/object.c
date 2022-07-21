@@ -42,6 +42,14 @@ hash_string(const char *key, size_t length)
   return hash;
 }
 
+ObjClosure *
+new_closure(ObjFunction *function)
+{
+  ObjClosure *closure = ALLOCATE_OBJ(ObjClosure, OBJ_CLOSURE);
+  closure->function = function;
+  return closure;
+}
+
 ObjFunction *
 new_function()
 {
@@ -98,6 +106,9 @@ void
 object_print(Value value)
 {
   switch (OBJ_TYPE(value)) {
+  case OBJ_CLOSURE:
+    print_function(AS_CLOSURE(value)->function);
+    break;
   case OBJ_FUNCTION:
     print_function(AS_FUNCTION(value));
     break;
