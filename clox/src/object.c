@@ -45,8 +45,13 @@ hash_string(const char *key, size_t length)
 ObjClosure *
 new_closure(ObjFunction *function)
 {
+  ObjUpvalue **upvalues = ALLOCATE(ObjUpvalue *, function->upvalue_count);
+  for (size_t i = 0; i < function->upvalue_count; ++i)
+    upvalues[i] = NULL;
   ObjClosure *closure = ALLOCATE_OBJ(ObjClosure, OBJ_CLOSURE);
   closure->function = function;
+  closure->upvalues = upvalues;
+  closure->upvalue_count = function->upvalue_count;
   return closure;
 }
 
@@ -94,6 +99,16 @@ copy_string(const char *chars, size_t length)
   return allocate_string(heap_chars, length, hash);
 }
 
+ObjUpvalue *
+new_upvalue(Value *slot)
+{
+  ObjUpvalue *upvalue = ALLOCATE_OBJ(ObjUpvalue, OBJ_UPVALUE);
+  upvalue->location = slot;
+  upvalue->closed = NIL_VAL;
+  upvalue->next = NULL;
+  return upvalue;
+}
+
 static void
 print_function(ObjFunction *function)
 {
@@ -118,6 +133,9 @@ object_print(Value value)
     break;
   case OBJ_STRING:
     printf("%s", AS_CSTRING(value));
+    break;
+  case OBJ_UPVALUE:
+    printf("upvalue");
     break;
   }
 }
