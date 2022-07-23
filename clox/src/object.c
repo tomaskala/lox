@@ -31,7 +31,9 @@ allocate_string(char *chars, size_t length, uint32_t hash)
   string->length = length;
   string->chars = chars;
   string->hash = hash;
+  vm_stack_push(OBJ_VAL(string));
   table_set(&vm.strings, string, NIL_VAL);
+  vm_stack_pop();
   return string;
 }
 

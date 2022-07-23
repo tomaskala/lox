@@ -183,14 +183,16 @@ is_falsey(Value value) {
 static void
 concatenate()
 {
-  ObjString *b = AS_STRING(vm_stack_pop());
-  ObjString *a = AS_STRING(vm_stack_pop());
+  ObjString *b = AS_STRING(vm_stack_peek(0));
+  ObjString *a = AS_STRING(vm_stack_peek(1));
   size_t length = a->length + b->length;
   char *chars = ALLOCATE(char, length + 1);
   memcpy(chars, a->chars, a->length);
   memcpy(chars + a->length, b->chars, b->length);
   chars[length] = '\0';
   ObjString *result = take_string(chars, length);
+  vm_stack_pop();
+  vm_stack_pop();
   vm_stack_push(OBJ_VAL(result));
 }
 
