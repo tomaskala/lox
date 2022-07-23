@@ -32,12 +32,22 @@ object_mark(Obj *object)
 {
   if (object == NULL)
     return;
+  if (object->is_marked)
+    return;
   #ifdef DEBUG_LOG_GC
   printf("%p mark ", (void *) object);
   value_print(OBJ_VAL(object));
   printf("\n");
   #endif
   object->is_marked = true;
+  if (vm.gray_capacity < vm.gray_count + 1) {
+    vm.gray_capacity = GROW_CAPACITY(vm.gray_capacity);
+    vm.gray_stack = (Obj **) realloc(vm.gray_stack,
+        sizeof(Obj *) * vm.gray_capacity);
+    if (vm.gray_stack == NULL)
+      exit(1);
+  }
+  vm.gray_stack[vm.gray_count++] = object;
 }
 
 void
@@ -45,6 +55,44 @@ value_mark(Value value)
 {
   if (IS_OBJ(value))
     object_mark(AS_OBJ(value));
+}
+
+static void
+array_mark(ValueArray *array)
+{
+  for (size_t i = 0; i < array->count; ++i)
+    value_mark(array->values[i]);
+}
+
+static void
+object_blacken(Obj *object)
+{
+  #ifdef DEBUG_LOG_GC
+  printf("%p blacken ", (void *) object);
+  value_print(OBJ_VAL(object));
+  printf("\n");
+  #endif
+  switch (object->type) {
+  case OBJ_CLOSURE: {
+    ObjClosure *closure = (ObjClosure *) object;
+    object_mark((Obj *) closure->function);
+    for (size_t i = 0; i < closure->upvalue_count; ++i)
+      object_mark((Obj *) closure->upvalues[i]);
+    break;
+  }
+  case OBJ_FUNCTION: {
+    ObjFunction *function = (ObjFunction *) object;
+    object_mark((Obj *) function->name);
+    array_mark(&function->chunk.constants);
+    break;
+  }
+  case OBJ_UPVALUE:
+    value_mark(((ObjUpvalue *) object)->closed);
+    break;
+  case OBJ_NATIVE:
+  case OBJ_STRING:
+    break;
+  }
 }
 
 static void
@@ -96,6 +144,15 @@ mark_roots()
   compiler_mark_roots();
 }
 
+static void
+trace_references()
+{
+  while (vm.gray_count > 0) {
+    Obj *object = vm.gray_stack[--vm.gray_count];
+    object_blacken(object);
+  }
+}
+
 void
 collect_garbage()
 {
@@ -103,6 +160,7 @@ collect_garbage()
   printf("-- gc begin\n");
   #endif
   mark_roots();
+  trace_references();
   #ifdef DEBUG_LOG_GC
   printf("-- gc end\n");
   #endif
@@ -117,4 +175,5 @@ free_objects()
     free_object(object);
     object = next;
   }
+  free(vm.gray_stack);
 }
