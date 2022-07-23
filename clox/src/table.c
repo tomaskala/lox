@@ -136,6 +136,16 @@ table_find_string(Table *table, const char *chars, size_t length,
 }
 
 void
+table_remove_white(Table *table)
+{
+  for (size_t i = 0; i < table->capacity; ++i) {
+    Entry *entry = &table->entries[i];
+    if (entry->key != NULL && !entry->key->obj.is_marked)
+      table_delete(table, entry->key);
+  }
+}
+
+void
 table_mark(Table *table)
 {
   for (size_t i = 0; i < table->capacity; ++i) {

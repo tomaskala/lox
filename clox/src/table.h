@@ -38,6 +38,9 @@ table_find_string(Table *table, const char *chars, size_t length,
                   uint32_t hash);
 
 void
+table_remove_white(Table *table);
+
+void
 table_mark(Table *table);
 
 #endif
