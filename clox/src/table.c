@@ -134,3 +134,13 @@ table_find_string(Table *table, const char *chars, size_t length,
     index = (index + 1) % table->capacity;
   }
 }
+
+void
+table_mark(Table *table)
+{
+  for (size_t i = 0; i < table->capacity; ++i) {
+    Entry *entry = &table->entries[i];
+    object_mark((Obj *) entry->key);
+    value_mark(entry->value);
+  }
+}

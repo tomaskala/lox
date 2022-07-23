@@ -22,6 +22,15 @@ void *
 reallocate(void *pointer, size_t old_size, size_t new_size);
 
 void
+object_mark(Obj *object);
+
+void
+value_mark(Value value);
+
+void
+collect_garbage();
+
+void
 free_objects();
 
 #endif

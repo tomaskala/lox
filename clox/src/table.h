@@ -37,4 +37,7 @@ ObjString *
 table_find_string(Table *table, const char *chars, size_t length,
                   uint32_t hash);
 
+void
+table_mark(Table *table);
+
 #endif

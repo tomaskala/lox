@@ -7,4 +7,7 @@
 ObjFunction *
 compile(const char *source);
 
+void
+compiler_mark_roots();
+
 #endif
