@@ -127,6 +127,11 @@ call_value(Value callee, uint8_t arg_count)
 {
   if (IS_OBJ(callee)) {
     switch (OBJ_TYPE(callee)) {
+    case OBJ_CLASS: {
+      ObjClass *class = AS_CLASS(callee);
+      vm.stack_top[-arg_count - 1] = OBJ_VAL(new_instance(class));
+      return true;
+    }
     case OBJ_CLOSURE:
       return call(AS_CLOSURE(callee), arg_count);
     case OBJ_NATIVE: {
@@ -290,6 +295,34 @@ run()
       *frame->closure->upvalues[slot]->location = vm_stack_peek(0);
       break;
     }
+    case OP_GET_PROPERTY: {
+      if (!IS_INSTANCE(vm_stack_peek(0))) {
+        runtime_error("Only instances have properties.");
+        return INTERPRET_RUNTIME_ERROR;
+      }
+      ObjInstance *instance = AS_INSTANCE(vm_stack_peek(0));
+      ObjString *name = READ_STRING();
+      Value value;
+      if (table_get(&instance->fields, name, &value)) {
+        vm_stack_pop();
+        vm_stack_push(value);
+        break;
+      }
+      runtime_error("Undefined property '%s'.", name->chars);
+      return INTERPRET_RUNTIME_ERROR;
+    }
+    case OP_SET_PROPERTY: {
+      if (!IS_INSTANCE(vm_stack_peek(1))) {
+        runtime_error("Only instances have fields.");
+        return INTERPRET_RUNTIME_ERROR;
+      }
+      ObjInstance *instance = AS_INSTANCE(vm_stack_peek(1));
+      table_set(&instance->fields, READ_STRING(), vm_stack_peek(0));
+      Value value = vm_stack_pop();
+      vm_stack_pop();
+      vm_stack_push(value);
+      break;
+    }
     case OP_EQUAL: {
       Value b = vm_stack_pop();
       Value a = vm_stack_pop();
@@ -392,6 +425,9 @@ run()
       frame = &vm.frames[vm.frame_count - 1];
       break;
     }
+    case OP_CLASS:
+      vm_stack_push(OBJ_VAL(new_class(READ_STRING())));
+      break;
     }
   }
   #undef READ_BYTE

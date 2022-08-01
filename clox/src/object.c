@@ -48,6 +48,14 @@ hash_string(const char *key, size_t length)
   return hash;
 }
 
+ObjClass *
+new_class(ObjString *name)
+{
+  ObjClass *class = ALLOCATE_OBJ(ObjClass, OBJ_CLASS);
+  class->name = name;
+  return class;
+}
+
 ObjClosure *
 new_closure(ObjFunction *function)
 {
@@ -59,6 +67,15 @@ new_closure(ObjFunction *function)
   closure->upvalues = upvalues;
   closure->upvalue_count = function->upvalue_count;
   return closure;
+}
+
+ObjInstance *
+new_instance(ObjClass *class)
+{
+  ObjInstance *instance = ALLOCATE_OBJ(ObjInstance, OBJ_INSTANCE);
+  instance->class = class;
+  table_init(&instance->fields);
+  return instance;
 }
 
 ObjFunction *
@@ -128,11 +145,17 @@ void
 object_print(Value value)
 {
   switch (OBJ_TYPE(value)) {
+  case OBJ_CLASS:
+    printf("%s", AS_CLASS(value)->name->chars);
+    break;
   case OBJ_CLOSURE:
     print_function(AS_CLOSURE(value)->function);
     break;
   case OBJ_FUNCTION:
     print_function(AS_FUNCTION(value));
+    break;
+  case OBJ_INSTANCE:
+    printf("%s instance", AS_INSTANCE(value)->class->name->chars);
     break;
   case OBJ_NATIVE:
     printf("<native fn>");

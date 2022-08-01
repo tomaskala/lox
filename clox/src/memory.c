@@ -78,6 +78,11 @@ object_blacken(Obj *object)
   printf("\n");
   #endif
   switch (object->type) {
+  case OBJ_CLASS: {
+    ObjClass *class = (ObjClass *) object;
+    object_mark((Obj *) class->name);
+    break;
+  }
   case OBJ_CLOSURE: {
     ObjClosure *closure = (ObjClosure *) object;
     object_mark((Obj *) closure->function);
@@ -89,6 +94,12 @@ object_blacken(Obj *object)
     ObjFunction *function = (ObjFunction *) object;
     object_mark((Obj *) function->name);
     array_mark(&function->chunk.constants);
+    break;
+  }
+  case OBJ_INSTANCE: {
+    ObjInstance *instance = (ObjInstance *) object;
+    object_mark((Obj *) instance->class);
+    table_mark(&instance->fields);
     break;
   }
   case OBJ_UPVALUE:
@@ -107,6 +118,10 @@ free_object(Obj *object)
   printf("%p free type %d\n", (void *) object, object->type);
   #endif
   switch (object->type) {
+  case OBJ_CLASS: {
+    FREE(ObjClass, object);
+    break;
+  }
   case OBJ_CLOSURE: {
     ObjClosure *closure = (ObjClosure *) object;
     FREE_ARRAY(ObjUpvalue *, closure->upvalues, closure->upvalue_count);
@@ -117,6 +132,12 @@ free_object(Obj *object)
     ObjFunction *function = (ObjFunction *) object;
     chunk_free(&function->chunk);
     FREE(ObjFunction, object);
+    break;
+  }
+  case OBJ_INSTANCE: {
+    ObjInstance *instance = (ObjInstance *) object;
+    table_free(&instance->fields);
+    FREE(ObjInstance, object);
     break;
   }
   case OBJ_NATIVE:
