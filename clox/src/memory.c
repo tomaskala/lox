@@ -180,6 +180,7 @@ mark_roots()
     object_mark((Obj *) upvalue);
   table_mark(&vm.globals);
   compiler_mark_roots();
+  object_mark((Obj *) vm.init_string);
 }
 
 static void

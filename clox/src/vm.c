@@ -72,15 +72,18 @@ vm_init()
   vm.gray_stack = NULL;
   table_init(&vm.globals);
   table_init(&vm.strings);
+  vm.init_string = NULL;
+  vm.init_string = copy_string("init", 4);
   define_native("clock", clock_native);
 }
 
 void
 vm_free()
 {
-  free_objects();
   table_free(&vm.globals);
   table_free(&vm.strings);
+  vm.init_string = NULL;
+  free_objects();
 }
 
 void
@@ -135,6 +138,13 @@ call_value(Value callee, uint8_t arg_count)
     case OBJ_CLASS: {
       ObjClass *class = AS_CLASS(callee);
       vm.stack_top[-arg_count - 1] = OBJ_VAL(new_instance(class));
+      Value initializer;
+      if (table_get(&class->methods, vm.init_string, &initializer))
+        return call(AS_CLOSURE(initializer), arg_count);
+      else if (arg_count != 0) {
+        runtime_error("Expected 0 arguments but got %zu.", arg_count);
+        return false;
+      }
       return true;
     }
     case OBJ_CLOSURE:
