@@ -5,7 +5,7 @@ CFLAGS  = -std=c99 -pedantic -Wall -Wextra -Werror -Wno-unused-parameter
 LDFLAGS =
 LDLIBS  =
 
-sources = \
+SRCS = \
 	src/main.c \
 	src/chunk.c \
 	src/memory.c \
@@ -16,31 +16,38 @@ sources = \
 	src/scanner.c \
 	src/object.c \
 	src/table.c
-headers = \
-	src/common.h \
-	src/chunk.h \
-	src/memory.h \
-	src/debug.h \
-	src/value.h \
-	src/vm.h \
-	src/compiler.h \
-	src/scanner.h \
-	src/object.h \
-	src.table.h
-objects = $(sources:.c=.o)
 
-all: clox
+DBGEXE    = debug
+DBGOBJS   = $(SRCS:.c=.dbg.o)
+DBGCFLAGS = -Og -g -DDEBUG_PRINT_CODE -DDEBUG_TRACE_EXECUTION -DDEBUG_STRESS_GC -DDEBUG_LOG_GC
 
-clox: $(objects)
-	$(CC) -O3 $(LDFLAGS) -o $@ $(objects) $(LDLIBS)
+RELEXE    = lox
+RELOBJS   = $(SRCS:.c=.o)
+RELCFLAGS = -O3
 
-debug: $(objects)
-	$(CC) -g -Og $(LDFLAGS) -o $@ $(objects) $(LDLIBS)
+.PHONY: all
+all: release
+
+.PHONY: debug
+debug: $(DBGEXE)
+
+$(DBGEXE): $(DBGOBJS)
+	$(CC) $(LDFLAGS) -o $(DBGEXE) $(DBGOBJS) $(LDLIBS)
+
+.PHONY: release
+release: $(RELEXE)
+
+$(RELEXE): $(RELOBJS)
+	$(CC) $(LDFLAGS) -o $(RELEXE) $(RELOBJS) $(LDLIBS)
 
 .PHONY: clean
 clean:
-	rm -f clox debug $(objects)
+	rm -f $(RELEXE) $(RELOBJS) $(DBGEXE) $(DBGOBJS)
+
+.SUFFIXES: .c .dbg.o
+.c.dbg.o:
+	$(CC) $(CFLAGS) $(DBGCFLAGS) -o $@ -c $<
 
 .SUFFIXES: .c .o
 .c.o:
-	$(CC) -c $(CFLAGS) -o $@ $<
+	$(CC) $(CFLAGS) $(RELCFLAGS) -o $@ -c $<
