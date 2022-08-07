@@ -391,6 +391,13 @@ run()
       vm_stack_push(value);
       break;
     }
+    case OP_GET_SUPER: {
+      ObjString *name = READ_STRING();
+      ObjClass *superclass = AS_CLASS(vm_stack_pop());
+      if (!bind_method(superclass, name))
+        return INTERPRET_RUNTIME_ERROR;
+      break;
+    }
     case OP_EQUAL: {
       Value b = vm_stack_pop();
       Value a = vm_stack_pop();
@@ -404,9 +411,9 @@ run()
       BINARY_OP(BOOL_VAL, <);
       break;
     case OP_ADD: {
-      if (IS_STRING(vm_stack_peek(0)) && IS_STRING(vm_stack_peek(1))) {
+      if (IS_STRING(vm_stack_peek(0)) && IS_STRING(vm_stack_peek(1)))
         concatenate();
-      } else if (IS_NUMBER(vm_stack_peek(0)) && IS_NUMBER(vm_stack_peek(1))) {
+      else if (IS_NUMBER(vm_stack_peek(0)) && IS_NUMBER(vm_stack_peek(1))) {
         double b = AS_NUMBER(vm_stack_pop());
         double a = AS_NUMBER(vm_stack_pop());
         vm_stack_push(NUMBER_VAL(a + b));
@@ -470,6 +477,15 @@ run()
       frame = &vm.frames[vm.frame_count - 1];
       break;
     }
+    case OP_SUPER_INVOKE: {
+      ObjString *method = READ_STRING();
+      uint8_t arg_count = READ_BYTE();
+      ObjClass *superclass = AS_CLASS(vm_stack_pop());
+      if (!invoke_from_class(superclass, method, arg_count))
+        return INTERPRET_RUNTIME_ERROR;
+      frame = &vm.frames[vm.frame_count - 1];
+      break;
+    }
     case OP_CLOSURE: {
       ObjFunction *function = AS_FUNCTION(READ_CONSTANT());
       ObjClosure *closure = new_closure(function);
@@ -504,6 +520,17 @@ run()
     case OP_CLASS:
       vm_stack_push(OBJ_VAL(new_class(READ_STRING())));
       break;
+    case OP_INHERIT: {
+      Value superclass = vm_stack_peek(1);
+      if (!IS_CLASS(superclass)) {
+        runtime_error("Superclass must be a class.");
+        return INTERPRET_RUNTIME_ERROR;
+      }
+      ObjClass *subclass = AS_CLASS(vm_stack_peek(0));
+      table_add_all(&AS_CLASS(superclass)->methods, &subclass->methods);
+      vm_stack_pop();
+      break;
+    }
     case OP_METHOD:
       define_method(READ_STRING());
       break;
