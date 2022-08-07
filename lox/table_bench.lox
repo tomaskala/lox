@@ -1,0 +1,90 @@
+class Zoo {
+  init() {
+    this.alligator = 1;
+    this.bear = 1;
+    this.cat = 1;
+    this.deer = 1;
+    this.elephant = 1;
+    this.flamingo = 1;
+    this.giraffe = 1;
+    this.hedgehog = 1;
+    this.impala = 1;
+    this.jaguar = 1;
+    this.koala = 1;
+    this.lion = 1;
+    this.monkey = 1;
+    this.nightingale = 1;
+    this.owl = 1;
+    this.penguin = 1;
+    this.quail = 1;
+    this.rabbit = 1;
+    this.snake = 1;
+    this.turtle = 1;
+    this.unicorn = 1;
+    this.vulture = 1;
+    this.whale = 1;
+    this.x_ray_fish = 1;
+    this.yak = 1;
+    this.zebra = 1;
+  }
+  avocado() { return this.alligator; }
+  banana() { return this.bear; }
+  carrot() { return this.cat; }
+  donut() { return this.deer; }
+  egg() { return this.elephant; }
+  fries() { return this.flamingo; }
+  grape() { return this.giraffe; }
+  hot_dog() { return this.hedgehog; }
+  ice_cream() { return this.impala; }
+  jam() { return this.jaguar; }
+  kiwi() { return this.koala; }
+  lemon() { return this.lion; }
+  muffin() { return this.monkey; }
+  nut() { return this.nightingale; }
+  orange() { return this.owl; }
+  pineapple() { return this.penguin; }
+  quesadilla() { return this.quail; }
+  radish() { return this.rabbit; }
+  strawberry() { return this.snake; }
+  tomato() { return this.turtle; }
+  ugli_fruit() { return this.unicorn; }
+  vinegar() { return this.vulture; }
+  watermelon() { return this.whale; }
+  ximenia() { return this.x_ray_fish; }
+  yam() { return this.yak; }
+  zucchini() { return this.zebra; }
+}
+
+var zoo = Zoo();
+var sum = 0;
+var start = clock();
+while (sum < 100000000) {
+  sum = sum + zoo.avocado()
+            + zoo.banana()
+            + zoo.carrot()
+            + zoo.donut()
+            + zoo.egg()
+            + zoo.fries()
+            + zoo.grape()
+            + zoo.hot_dog()
+            + zoo.ice_cream()
+            + zoo.jam()
+            + zoo.kiwi()
+            + zoo.lemon()
+            + zoo.muffin()
+            + zoo.nut()
+            + zoo.orange()
+            + zoo.pineapple()
+            + zoo.quesadilla()
+            + zoo.radish()
+            + zoo.strawberry()
+            + zoo.tomato()
+            + zoo.ugli_fruit()
+            + zoo.vinegar()
+            + zoo.watermelon()
+            + zoo.ximenia()
+            + zoo.yam()
+            + zoo.zucchini();
+}
+print clock() - start;
+print sum;
