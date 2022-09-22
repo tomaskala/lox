@@ -160,7 +160,7 @@ emit_bytes(uint8_t byte1, uint8_t byte2)
 }
 
 static void
-emit_loop(size_t loop_start)
+emit_loop(int loop_start)
 {
   emit_byte(OP_LOOP);
   int offset = current_chunk()->count - loop_start + 2;
@@ -170,7 +170,7 @@ emit_loop(size_t loop_start)
   emit_byte(offset & 0xff);
 }
 
-static size_t
+static int
 emit_jump(uint8_t instruction)
 {
   emit_byte(instruction);
@@ -192,7 +192,7 @@ emit_return()
 static uint8_t
 make_constant(Value value)
 {
-  size_t constant = chunk_add_constant(current_chunk(), value);
+  int constant = chunk_add_constant(current_chunk(), value);
   if (constant > UINT8_MAX) {
     error("Too many constants in one chunk.");
     return 0;
@@ -207,9 +207,9 @@ emit_constant(Value value)
 }
 
 static void
-patch_jump(size_t offset)
+patch_jump(int offset)
 {
-  size_t jump = current_chunk()->count - offset - 2;
+  int jump = current_chunk()->count - offset - 2;
   if (jump > UINT16_MAX)
     error("Too much code to jump over");
   current_chunk()->code[offset] = (jump >> 8) & 0xff;
@@ -322,8 +322,8 @@ resolve_local(Compiler *compiler, Token *name)
 static int
 add_upvalue(Compiler *compiler, uint8_t index, bool is_local)
 {
-  size_t upvalue_count = compiler->function->upvalue_count;
-  for (size_t i = 0; i < upvalue_count; ++i) {
+  int upvalue_count = compiler->function->upvalue_count;
+  for (int i = 0; i < upvalue_count; ++i) {
     Upvalue *upvalue = &compiler->upvalues[i];
     if (upvalue->index == index && upvalue->is_local == is_local)
       return i;
@@ -429,7 +429,7 @@ argument_list()
 static void
 and_(bool can_assign)
 {
-  size_t end_jump = emit_jump(OP_JUMP_IF_FALSE);
+  int end_jump = emit_jump(OP_JUMP_IF_FALSE);
   emit_byte(OP_POP);
   parse_precedence(PREC_AND);
   patch_jump(end_jump);
@@ -537,8 +537,8 @@ number(bool can_assign)
 static void
 or_(bool can_assign)
 {
-  size_t else_jump = emit_jump(OP_JUMP_IF_FALSE);
-  size_t end_jump = emit_jump(OP_JUMP);
+  int else_jump = emit_jump(OP_JUMP_IF_FALSE);
+  int end_jump = emit_jump(OP_JUMP);
   patch_jump(else_jump);
   emit_byte(OP_POP);
   parse_precedence(PREC_OR);
@@ -745,7 +745,7 @@ function(FunctionType type)
   block();
   ObjFunction *function = compiler_end();
   emit_bytes(OP_CLOSURE, make_constant(OBJ_VAL(function)));
-  for (size_t i = 0; i < function->upvalue_count; ++i) {
+  for (int i = 0; i < function->upvalue_count; ++i) {
     emit_byte(compiler.upvalues[i].is_local ? 1 : 0);
     emit_byte(compiler.upvalues[i].index);
   }
@@ -840,7 +840,7 @@ for_statement()
     var_declaration();
   else
     expression_statement();
-  size_t loop_start = current_chunk()->count;
+  int loop_start = current_chunk()->count;
   int exit_jump = -1;
   if (!match(TOKEN_SEMICOLON)) {
     expression();
@@ -849,8 +849,8 @@ for_statement()
     emit_byte(OP_POP);
   }
   if (!match(TOKEN_RIGHT_PAREN)) {
-    size_t body_jump = emit_jump(OP_JUMP);
-    size_t increment_start = current_chunk()->count;
+    int body_jump = emit_jump(OP_JUMP);
+    int increment_start = current_chunk()->count;
     expression();
     emit_byte(OP_POP);
     consume(TOKEN_RIGHT_PAREN, "Expect ')' after for clauses.");
@@ -873,10 +873,10 @@ if_statement()
   consume(TOKEN_LEFT_PAREN, "Expect '(' after 'if'.");
   expression();
   consume(TOKEN_RIGHT_PAREN, "Expect ')' after condition.");
-  size_t then_jump = emit_jump(OP_JUMP_IF_FALSE);
+  int then_jump = emit_jump(OP_JUMP_IF_FALSE);
   emit_byte(OP_POP);
   statement();
-  size_t else_jump = emit_jump(OP_JUMP);
+  int else_jump = emit_jump(OP_JUMP);
   patch_jump(then_jump);
   emit_byte(OP_POP);
   if (match(TOKEN_ELSE))
@@ -911,11 +911,11 @@ return_statement()
 static void
 while_statement()
 {
-  size_t loop_start = current_chunk()->count;
+  int loop_start = current_chunk()->count;
   consume(TOKEN_LEFT_PAREN, "Expect '(' after 'while'.");
   expression();
   consume(TOKEN_RIGHT_PAREN, "Expect ')' after condition.");
-  size_t exit_jump = emit_jump(OP_JUMP_IF_FALSE);
+  int exit_jump = emit_jump(OP_JUMP_IF_FALSE);
   emit_byte(OP_POP);
   statement();
   emit_loop(loop_start);

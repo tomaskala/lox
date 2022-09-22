@@ -18,7 +18,7 @@ void
 chunk_write(Chunk *chunk, uint8_t byte, int line)
 {
   if (chunk->capacity < chunk->count + 1) {
-    size_t old_capacity = chunk->capacity;
+    int old_capacity = chunk->capacity;
     chunk->capacity = GROW_CAPACITY(old_capacity);
     chunk->code = GROW_ARRAY(uint8_t, chunk->code, old_capacity,
                              chunk->capacity);
@@ -30,7 +30,7 @@ chunk_write(Chunk *chunk, uint8_t byte, int line)
   chunk->count++;
 }
 
-size_t
+int
 chunk_add_constant(Chunk *chunk, Value value)
 {
   vm_stack_push(value);

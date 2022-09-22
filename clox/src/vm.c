@@ -101,7 +101,7 @@ vm_stack_pop()
 }
 
 static Value
-vm_stack_peek(size_t distance)
+vm_stack_peek(int distance)
 {
   return vm.stack_top[-1 - distance];
 }
@@ -257,7 +257,7 @@ concatenate()
 {
   ObjString *b = AS_STRING(vm_stack_peek(0));
   ObjString *a = AS_STRING(vm_stack_peek(1));
-  size_t length = a->length + b->length;
+  int length = a->length + b->length;
   char *chars = ALLOCATE(char, length + 1);
   memcpy(chars, a->chars, a->length);
   memcpy(chars + a->length, b->chars, b->length);
@@ -296,7 +296,7 @@ run()
     }
     printf("\n");
     disassemble_instruction(&frame->closure->function->chunk,
-        (size_t) (frame->ip - frame->closure->function->chunk.code));
+        (int) (frame->ip - frame->closure->function->chunk.code));
     #endif
     uint8_t instruction;
     switch (instruction = READ_BYTE()) {
@@ -490,7 +490,7 @@ run()
       ObjFunction *function = AS_FUNCTION(READ_CONSTANT());
       ObjClosure *closure = new_closure(function);
       vm_stack_push(OBJ_VAL(closure));
-      for (size_t i = 0; i < closure->upvalue_count; ++i) {
+      for (int i = 0; i < closure->upvalue_count; ++i) {
         uint8_t is_local = READ_BYTE();
         uint8_t index = READ_BYTE();
         if (is_local)

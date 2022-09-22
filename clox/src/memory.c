@@ -65,7 +65,7 @@ value_mark(Value value)
 static void
 array_mark(ValueArray *array)
 {
-  for (size_t i = 0; i < array->count; ++i)
+  for (int i = 0; i < array->count; ++i)
     value_mark(array->values[i]);
 }
 
@@ -93,7 +93,7 @@ object_blacken(Obj *object)
   case OBJ_CLOSURE: {
     ObjClosure *closure = (ObjClosure *) object;
     object_mark((Obj *) closure->function);
-    for (size_t i = 0; i < closure->upvalue_count; ++i)
+    for (int i = 0; i < closure->upvalue_count; ++i)
       object_mark((Obj *) closure->upvalues[i]);
     break;
   }
@@ -173,7 +173,7 @@ mark_roots()
 {
   for (Value *slot = vm.stack; slot < vm.stack_top; ++slot)
     value_mark(*slot);
-  for (size_t i = 0; i < vm.frame_count; ++i)
+  for (int i = 0; i < vm.frame_count; ++i)
     object_mark((Obj *) vm.frames[i].closure);
   for (ObjUpvalue *upvalue = vm.open_upvalues; upvalue != NULL;
       upvalue = upvalue->next)

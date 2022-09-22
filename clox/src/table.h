@@ -10,8 +10,8 @@ typedef struct {
 } Entry;
 
 typedef struct {
-  size_t count;
-  size_t capacity;
+  int count;
+  int capacity;
   Entry *entries;
 } Table;
 
@@ -34,8 +34,7 @@ void
 table_add_all(Table *from, Table *to);
 
 ObjString *
-table_find_string(Table *table, const char *chars, size_t length,
-                  uint32_t hash);
+table_find_string(Table *table, const char *chars, int length, uint32_t hash);
 
 void
 table_remove_white(Table *table);

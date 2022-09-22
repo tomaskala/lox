@@ -25,7 +25,7 @@ allocate_object(size_t size, ObjType type)
 }
 
 static ObjString *
-allocate_string(char *chars, size_t length, uint32_t hash)
+allocate_string(char *chars, int length, uint32_t hash)
 {
   ObjString *string = ALLOCATE_OBJ(ObjString, OBJ_STRING);
   string->length = length;
@@ -38,10 +38,10 @@ allocate_string(char *chars, size_t length, uint32_t hash)
 }
 
 static uint32_t
-hash_string(const char *key, size_t length)
+hash_string(const char *key, int length)
 {
   uint32_t hash = 2166136261u;
-  for (size_t i = 0; i < length; ++i) {
+  for (int i = 0; i < length; ++i) {
     hash ^= (uint8_t) key[i];
     hash *= 16777619;
   }
@@ -70,7 +70,7 @@ ObjClosure *
 new_closure(ObjFunction *function)
 {
   ObjUpvalue **upvalues = ALLOCATE(ObjUpvalue *, function->upvalue_count);
-  for (size_t i = 0; i < function->upvalue_count; ++i)
+  for (int i = 0; i < function->upvalue_count; ++i)
     upvalues[i] = NULL;
   ObjClosure *closure = ALLOCATE_OBJ(ObjClosure, OBJ_CLOSURE);
   closure->function = function;
@@ -108,7 +108,7 @@ new_native(NativeFn function)
 }
 
 ObjString *
-take_string(char *chars, size_t length)
+take_string(char *chars, int length)
 {
   uint32_t hash = hash_string(chars, length);
   ObjString *interned = table_find_string(&vm.strings, chars, length, hash);
@@ -120,7 +120,7 @@ take_string(char *chars, size_t length)
 }
 
 ObjString *
-copy_string(const char *chars, size_t length)
+copy_string(const char *chars, int length)
 {
   uint32_t hash = hash_string(chars, length);
   ObjString *interned = table_find_string(&vm.strings, chars, length, hash);

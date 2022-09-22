@@ -8,12 +8,12 @@ void
 disassemble_chunk(Chunk *chunk, const char *name)
 {
   printf("== %s ==\n", name);
-  for (size_t offset = 0; offset < chunk->count;)
+  for (int offset = 0; offset < chunk->count;)
     offset = disassemble_instruction(chunk, offset);
 }
 
-static size_t
-constant_instruction(const char *name, Chunk *chunk, size_t offset)
+static int
+constant_instruction(const char *name, Chunk *chunk, int offset)
 {
   uint8_t constant = chunk->code[offset + 1];
   printf("%-16s %4u '", name, constant);
@@ -22,8 +22,8 @@ constant_instruction(const char *name, Chunk *chunk, size_t offset)
   return offset + 2;
 }
 
-static size_t
-invoke_instruction(const char *name, Chunk *chunk, size_t offset)
+static int
+invoke_instruction(const char *name, Chunk *chunk, int offset)
 {
   uint8_t constant = chunk->code[offset + 1];
   uint8_t arg_count = chunk->code[offset + 2];
@@ -33,34 +33,34 @@ invoke_instruction(const char *name, Chunk *chunk, size_t offset)
   return offset + 3;
 }
 
-static size_t
-simple_instruction(const char *name, size_t offset)
+static int
+simple_instruction(const char *name, int offset)
 {
   printf("%s\n", name);
   return offset + 1;
 }
 
-static size_t
-byte_instruction(const char *name, Chunk *chunk, size_t offset)
+static int
+byte_instruction(const char *name, Chunk *chunk, int offset)
 {
   uint8_t slot = chunk->code[offset + 1];
   printf("%-16s %4d\n", name, slot);
   return offset + 2;
 }
 
-static size_t
-jump_instruction(const char *name, int sign, Chunk *chunk, size_t offset)
+static int
+jump_instruction(const char *name, int sign, Chunk *chunk, int offset)
 {
   uint16_t jump = (uint16_t) (chunk->code[offset + 1] << 8);
   jump |= chunk->code[offset + 2];
-  printf("%-16s %zu -> %d\n", name, offset, (int) offset + 3 + sign * jump);
+  printf("%-16s %4d -> %d\n", name, offset, (int) offset + 3 + sign * jump);
   return offset + 3;
 }
 
-size_t
-disassemble_instruction(Chunk *chunk, size_t offset)
+int
+disassemble_instruction(Chunk *chunk, int offset)
 {
-  printf("%04zu ", offset);
+  printf("%04d ", offset);
   if (offset > 0 && chunk->lines[offset] == chunk->lines[offset - 1])
     printf("   | ");
   else
@@ -136,10 +136,10 @@ disassemble_instruction(Chunk *chunk, size_t offset)
     value_print(chunk->constants.values[constant]);
     printf("\n");
     ObjFunction *function = AS_FUNCTION(chunk->constants.values[constant]);
-    for (size_t i = 0; i < function->upvalue_count; ++i) {
+    for (int i = 0; i < function->upvalue_count; ++i) {
       uint8_t is_local = chunk->code[offset++];
       uint8_t index = chunk->code[offset++];
-      printf("%04zu | %s %d\n", offset - 2, is_local ? "local" : "upvalue", index);
+      printf("%04d | %s %d\n", offset - 2, is_local ? "local" : "upvalue", index);
     }
     return offset;
   }

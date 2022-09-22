@@ -17,7 +17,7 @@ typedef struct {
 
 typedef struct {
   CallFrame frames[FRAMES_MAX];
-  size_t frame_count;
+  int frame_count;
   Value stack[STACK_MAX];
   Value *stack_top;
   Table globals;
@@ -27,8 +27,8 @@ typedef struct {
   size_t bytes_allocated;
   size_t next_gc;
   Obj *objects;
-  size_t gray_count;
-  size_t gray_capacity;
+  int gray_count;
+  int gray_capacity;
   Obj **gray_stack;
 } VM;
 

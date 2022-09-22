@@ -44,8 +44,8 @@ struct Obj {
 
 typedef struct {
   Obj obj;
-  size_t arity;
-  size_t upvalue_count;
+  int arity;
+  int upvalue_count;
   Chunk chunk;
   ObjString *name;
 } ObjFunction;
@@ -59,7 +59,7 @@ typedef struct {
 
 struct ObjString {
   Obj obj;
-  size_t length;
+  int length;
   char *chars;
   uint32_t hash;
 };
@@ -75,7 +75,7 @@ typedef struct {
   Obj obj;
   ObjFunction *function;
   ObjUpvalue **upvalues;
-  size_t upvalue_count;
+  int upvalue_count;
 } ObjClosure;
 
 typedef struct {
@@ -115,10 +115,10 @@ ObjNative *
 new_native(NativeFn function);
 
 ObjString *
-take_string(char *chars, size_t length);
+take_string(char *chars, int length);
 
 ObjString *
-copy_string(const char *chars, size_t length);
+copy_string(const char *chars, int length);
 
 ObjUpvalue *
 new_upvalue(Value *slot);
